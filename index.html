@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlesaLabs · AI &amp; Vibe Coding</title>
+<meta name="description" content="PlesaLabs – Michal Pleša. Weby a aplikácie postavené s pomocou AI. Portfólio projektov a kontakt.">
+<meta property="og:title" content="PlesaLabs · AI & Vibe Coding">
+<meta property="og:description" content="Weby a aplikácie postavené s pomocou AI.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --noc:#0B0D12; --noc2:#12151D; --linka:#1F2430;
+  --fialova:#7C5CFF; --tyrkys:#22D3EE; --siva:#9AA3B2; --biela:#F5F7FA;
+  --grad:linear-gradient(90deg,var(--fialova),var(--tyrkys));
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--noc);color:var(--biela);font-family:Inter,system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+
+/* nav */
+nav{position:sticky;top:0;z-index:10;background:rgba(11,13,18,.75);backdrop-filter:blur(12px);border-bottom:1px solid var(--linka)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.3px}
+.logo svg{width:34px;height:34px}
+nav ul{display:flex;gap:28px;list-style:none;font-size:15px;color:var(--siva)}
+nav ul a:hover{color:var(--biela)}
+@media(max-width:640px){nav ul{display:none}}
+
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:12px;font-weight:600;font-size:15px;transition:transform .15s,box-shadow .15s}
+.btn-main{background:var(--grad);color:#fff;box-shadow:0 8px 30px -8px rgba(124,92,255,.6)}
+.btn-main:hover{transform:translateY(-2px);box-shadow:0 12px 36px -8px rgba(124,92,255,.8)}
+.btn-ghost{border:1px solid var(--linka);color:var(--biela)}
+.btn-ghost:hover{border-color:var(--fialova)}
+
+/* hero */
+.hero{position:relative;padding:110px 0 90px;text-align:center}
+.hero::before{content:"";position:absolute;inset:-200px 0 auto;height:600px;background:radial-gradient(ellipse at 50% 30%,rgba(124,92,255,.28),transparent 60%),radial-gradient(ellipse at 70% 50%,rgba(34,211,238,.14),transparent 55%);pointer-events:none;z-index:-1}
+.tag{display:inline-block;font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--siva);border:1px solid var(--linka);padding:7px 14px;border-radius:99px;margin-bottom:28px}
+.hero h1{font-size:clamp(40px,8vw,76px);font-weight:800;letter-spacing:-2px;line-height:1.05}
+.hero p{max-width:620px;margin:24px auto 36px;color:var(--siva);font-size:clamp(16px,2.2vw,19px)}
+.hero .ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.prompt{margin:56px auto 0;max-width:560px;text-align:left;background:var(--noc2);border:1px solid var(--linka);border-radius:14px;padding:18px 20px;font-size:14px;color:var(--siva)}
+.prompt b{color:var(--tyrkys);font-weight:500}
+.cursor{display:inline-block;width:8px;height:16px;background:var(--fialova);vertical-align:-3px;animation:blik 1s steps(1) infinite}
+@keyframes blik{50%{opacity:0}}
+
+section{padding:90px 0}
+.sec-head{margin-bottom:44px}
+.sec-head .mono{color:var(--fialova);font-size:13px}
+.sec-head h2{font-size:clamp(30px,5vw,44px);font-weight:800;letter-spacing:-1px;margin-top:6px}
+.sec-head p{color:var(--siva);max-width:560px;margin-top:10px}
+
+/* projekty */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.card{background:var(--noc2);border:1px solid var(--linka);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;transition:transform .2s,border-color .2s}
+.card:hover{transform:translateY(-4px);border-color:rgba(124,92,255,.6)}
+.card .nahlad{aspect-ratio:16/9;display:grid;place-items:center;background:radial-gradient(circle at 30% 30%,rgba(124,92,255,.35),transparent 60%),radial-gradient(circle at 80% 80%,rgba(34,211,238,.25),transparent 55%),#0E1118;font-size:34px;font-weight:800;letter-spacing:-1px}
+.card .telo{padding:22px;display:flex;flex-direction:column;gap:10px;flex:1}
+.card h3{font-size:20px}
+.card p{color:var(--siva);font-size:15px;flex:1}
+.stitky{display:flex;gap:6px;flex-wrap:wrap}
+.stitky span{font-size:12px;color:var(--tyrkys);background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);padding:3px 10px;border-radius:99px}
+.card .odkaz{color:var(--fialova);font-weight:600;font-size:15px;margin-top:4px}
+.card.prazdna{border-style:dashed;justify-content:center;align-items:center;text-align:center;padding:40px 24px;color:var(--siva);min-height:280px}
+.card.prazdna:hover{transform:none}
+
+/* ako pracujem */
+.kroky{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+.krok{border-top:2px solid var(--linka);padding-top:20px}
+.krok .c{font-size:13px;color:var(--fialova)}
+.krok h3{font-size:19px;margin:6px 0}
+.krok p{color:var(--siva);font-size:15px}
+
+/* o mne */
+.omne{display:grid;grid-template-columns:1fr 1.4fr;gap:48px;align-items:center}
+@media(max-width:820px){.omne{grid-template-columns:1fr}}
+.foto{aspect-ratio:1;border-radius:24px;background:var(--grad);display:grid;place-items:center;max-width:340px;width:100%}
+.foto svg{width:45%}
+.omne p{color:var(--siva);margin-bottom:14px;font-size:17px}
+.omne p strong{color:var(--biela)}
+
+/* kontakt */
+.kontakt{background:var(--noc2);border:1px solid var(--linka);border-radius:24px;padding:clamp(28px,5vw,56px);display:grid;grid-template-columns:1fr 1fr;gap:40px}
+@media(max-width:820px){.kontakt{grid-template-columns:1fr}}
+form{display:grid;gap:12px}
+input,textarea{width:100%;background:var(--noc);border:1px solid var(--linka);border-radius:12px;padding:14px;color:var(--biela);font:inherit;font-size:15px}
+input:focus,textarea:focus{outline:none;border-color:var(--fialova)}
+textarea{min-height:130px;resize:vertical}
+.skryte{display:none}
+button.btn{border:0;cursor:pointer;justify-content:center}
+
+footer{padding:40px 0;border-top:1px solid var(--linka);color:var(--siva);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="#" class="logo" aria-label="PlesaLabs">
+      <svg viewBox="0 0 56 56" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C5CFF"/><stop offset="1" stop-color="#22D3EE"/></linearGradient></defs><rect width="56" height="56" rx="15" fill="url(#lg)"/><path d="M19 41V15h10.5a8.5 8.5 0 0 1 0 17H19" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="38.5" cy="41" r="3.2" fill="#fff"/></svg>
+      <span>Plesa<span class="grad">Labs</span></span>
+    </a>
+    <ul>
+      <li><a href="#projekty">Projekty</a></li>
+      <li><a href="#ako-pracujem">Ako pracujem</a></li>
+      <li><a href="#o-mne">O mne</a></li>
+      <li><a href="#kontakt">Kontakt</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="tag">AI &amp; Vibe Coding</span>
+    <h1>Nápad dnes.<br><span class="grad">Hotový produkt zajtra.</span></h1>
+    <p>Som Michal Pleša a staviam weby a aplikácie s pomocou umelej inteligencie. Rýchlo, moderne a tak, aby naozaj fungovali.</p>
+    <div class="ctas">
+      <a href="#projekty" class="btn btn-main">Pozrieť projekty →</a>
+      <a href="#kontakt" class="btn btn-ghost">Napísať mi</a>
+    </div>
+    <div class="prompt mono">
+      <b>&gt;</b> postav web pre kaviareň, luxusný, čierna a zlatá<br>
+      <b>✓</b> hotovo · nasadené na webe<span class="cursor"></span>
+    </div>
+  </div>
+</header>
+
+<section id="projekty">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="mono">// 01</span>
+      <h2>Projekty</h2>
+      <p>Veci, ktoré som postavil. Všetko je živé, môžeš si to hneď vyskúšať.</p>
+    </div>
+    <div class="grid">
+      <article class="card">
+        <div class="nahlad"><span>Tip<span class="grad">Radar</span></span></div>
+        <div class="telo">
+          <div class="stitky"><span>Futbal</span><span>Štatistický model</span><span>Dáta</span><span>Členstvá</span></div>
+          <h3>TipRadar</h3>
+          <p>Futbalové tipy podložené číslami: štatistický model každý deň prejde stovky zápasov, vyberie najviac tri najsilnejšie tipy a každý po zápase verejne vyhodnotí, aj s prehrami.</p>
+          <p style="font-size:13px;flex:0">Kompletný produkt od nápadu po zákazníkov: obsah, dáta, dizajn, členstvá aj komunikácia.</p>
+          <a class="odkaz" href="https://tipradar.eu/" target="_blank" rel="noopener">Otvoriť web ↗</a>
+        </div>
+      </article>
+      <div class="card prazdna">
+        <div>
+          <div class="mono" style="color:var(--fialova);margin-bottom:8px">// v príprave</div>
+          Ďalšie projekty pribúdajú.<br>Máš nápad? <a href="#kontakt" style="color:var(--biela);text-decoration:underline">Postavíme ho spolu.</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ako-pracujem">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="mono">// 02</span>
+      <h2>Ako pracujem</h2>
+      <p>Vibe coding znamená, že nápad opíšem slovami a AI mi pomôže premeniť ho na funkčný kód. Ja držím smer, kvalitu a výsledok.</p>
+    </div>
+    <div class="kroky">
+      <div class="krok"><span class="c mono">01</span><h3>Nápad</h3><p>Ujasníme si, čo má produkt robiť a pre koho je.</p></div>
+      <div class="krok"><span class="c mono">02</span><h3>Stavba s AI</h3><p>S AI nástrojmi postavím prvú verziu za zlomok bežného času.</p></div>
+      <div class="krok"><span class="c mono">03</span><h3>Ladenie</h3><p>Testujem na mobile aj počítači a dolaďujem detaily, kým to nesedí.</p></div>
+      <div class="krok"><span class="c mono">04</span><h3>Spustenie</h3><p>Web ide naživo a ďalšie úpravy robím rýchlo podľa potreby.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="o-mne">
+  <div class="wrap omne">
+    <div class="foto">
+      <svg viewBox="0 0 56 56" aria-hidden="true"><path d="M19 41V15h10.5a8.5 8.5 0 0 1 0 17H19" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="38.5" cy="41" r="3.2" fill="#fff"/></svg>
+    </div>
+    <div>
+      <div class="sec-head" style="margin-bottom:20px">
+        <span class="mono">// 03</span>
+        <h2>O mne</h2>
+      </div>
+      <p>Som <strong>Michal Pleša</strong>, zakladateľ <strong>TipRadaru</strong>. Založil som ho, pretože som chcel tipy, za ktorými stoja čísla, nie dojmy z posledného zápasu. Model preto každý deň prejde stovky zápasov a vyberie len tie, kde vidí skutočnú hodnotu.</p>
+      <p><strong>Transparentnosť je pre mňa základ.</strong> Každý tip sa uloží v momente odoslania a po zápase sa sám vyhodnotí. Nič nemažem ani neupravujem, preto tam nájdete aj prehry.</p>
+      <p>Pod značkou <strong>PlesaLabs</strong> staviam s pomocou AI ďalšie weby a aplikácie a hľadám príležitosti, kde môžem tieto skúsenosti využiť naplno.</p>
+    </div>
+  </div>
+</section>
+
+<section id="kontakt">
+  <div class="wrap">
+    <div class="kontakt">
+      <div>
+        <span class="mono" style="color:var(--fialova);font-size:13px">// 04</span>
+        <h2 style="font-size:clamp(30px,5vw,44px);font-weight:800;letter-spacing:-1px;margin:6px 0 14px">Poďme niečo <span class="grad">postaviť</span></h2>
+        <p style="color:var(--siva)">Máš projekt, ponuku práce alebo len otázku? Napíš mi a ozvem sa.</p>
+      </div>
+      <form name="kontakt" method="POST" action="/dakujem.html" data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="kontakt">
+        <p class="skryte"><label>Nevypĺňaj: <input name="bot-field"></label></p>
+        <input name="meno" placeholder="Meno" required>
+        <input name="email" type="email" placeholder="E-mail" required>
+        <textarea name="sprava" placeholder="Správa" required></textarea>
+        <button type="submit" class="btn btn-main">Odoslať správu →</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="rok">2026</span> PlesaLabs · Michal Pleša</span>
+    <span class="mono">AI &amp; Vibe Coding</span>
+  </div>
+</footer>
+<script>document.getElementById('rok').textContent=new Date().getFullYear()</script>
+</body>
+</html>
