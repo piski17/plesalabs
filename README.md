@@ -1,6 +1,6 @@
-# Zenkod
+# ZenKod
 
-Zenkod – osobný web a portfólio Michala Plešu · AI & Vibe Coding.
+ZenKod – osobný web a portfólio Michala Plešu · AI & Vibe Coding.
 
 Statický web, nasadený na Netlify (publish = ".").
 
