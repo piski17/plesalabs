@@ -35,7 +35,7 @@ header{position:sticky;top:0;z-index:20;background:rgba(11,13,18,.86);backdrop-f
 .today{font-size:12px;font-weight:700;color:var(--c);padding:4px 10px;border:1px solid rgba(34,211,238,.4);border-radius:99px;margin-left:6px;vertical-align:middle}
 main{max-width:640px;margin:0 auto;padding:16px 16px calc(150px + env(safe-area-inset-bottom))}
 nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(14,16,23,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
-nav .in{display:grid;grid-template-columns:repeat(4,1fr);max-width:640px;margin:0 auto}
+nav .in{display:grid;grid-template-columns:repeat(5,1fr);max-width:640px;margin:0 auto}
 nav button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0;font-size:11.5px;font-weight:600;color:var(--m);border-radius:12px}
 nav button svg{width:23px;height:23px}
 nav button.on{color:var(--t)}
@@ -177,6 +177,7 @@ input.f::placeholder{color:#5D6577;font-weight:500}
 
 <nav><div class="in">
   <button data-tab="trening"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/></svg>Tréning</button>
+  <button data-tab="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Plán</button>
   <button data-tab="strava"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v8a2 2 0 0 0 2 2v8M5 3v5a2 2 0 0 0 2 2M11 3v5a2 2 0 0 1-2 2M17 21V3c-2 1.5-3 4-3 7 0 2 1 3 3 3"/></svg>Strava</button>
   <button data-tab="doplnky"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="M9.5 9.5l5 5"/></svg>Doplnky</button>
   <button data-tab="pokrok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M5 16l4-5 4 3 6-8"/></svg>Pokrok</button>
@@ -337,6 +338,13 @@ function renderHistory(){
   }).join('') + '</div>';
 }
 
+/* ---------- Plán (obrázky) ---------- */
+const PLAN_IMG = [['1-pondelok-upper-a','Pondelok · Upper A'],['2-utorok-lower-a','Utorok · Lower A'],['3-streda-beh','Streda · Beh + chôdza'],['4-stvrtok-upper-b','Štvrtok · Upper B'],['5-piatok-lower-b','Piatok · Lower B'],['6-strava-a-pravidla','Strava a pravidlá']];
+function renderPlan(){
+  return '<h2>Tréningový plán</h2><div class="chips">' + PLAN_IMG.map(([f,t]) => `<button class="chip" data-act="jump" data-f="${f}">${t.split(' · ')[1] || t}</button>`).join('') + '</div>' +
+    PLAN_IMG.map(([f,t]) => `<div id="p-${f}" style="scroll-margin-top:130px;margin-bottom:14px"><h3>${t}</h3><a href="plan/${f}.jpg" target="_blank" rel="noopener"><img src="plan/${f}.jpg" alt="${t}" loading="lazy" style="width:100%;display:block;border-radius:16px;border:1px solid var(--line)"></a></div>`).join('');
+}
+
 /* ---------- Strava ---------- */
 function kcalGoal(k){ return workoutFor(k) === 'beh' ? S.goals.kcalRun : S.goals.kcal; }
 function renderStrava(){
@@ -468,7 +476,7 @@ function render(){
   document.querySelector('[data-act="day"][data-d="-1"]').style.visibility = cur <= START ? 'hidden' : '';
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
   const m = $('#main');
-  m.innerHTML = tab === 'strava' ? renderStrava() : tab === 'doplnky' ? renderDoplnky() : tab === 'pokrok' ? renderPokrok() : renderTrening();
+  m.innerHTML = tab === 'plan' ? renderPlan() : tab === 'strava' ? renderStrava() : tab === 'doplnky' ? renderDoplnky() : tab === 'pokrok' ? renderPokrok() : renderTrening();
 }
 function rerender(){ const y = window.scrollY; render(); window.scrollTo(0, y); }
 
@@ -523,6 +531,7 @@ document.addEventListener('click', e => {
   }
   else if (a === 'saveweight'){ const v = num($('#wkg').value); if (v < 30 || v > 250){ toast('Zadaj váhu v kg'); return; } S.weight[cur] = Math.round(v*10)/10; save(); rerender(); toast('Váha uložená'); }
   else if (a === 'delweight'){ delete S.weight[b.dataset.k]; save(); rerender(); }
+  else if (a === 'jump'){ const el = document.getElementById('p-' + b.dataset.f); if (el) el.scrollIntoView({behavior:'smooth'}); }
   else if (a === 'settings') openSettings();
   else if (a === 'close') $('#modal').classList.remove('show');
   else if (a === 'savegoals'){ ['kcal','kcalRun','p','f','c','water','start','target'].forEach(k => { const v = num($('#g_' + k).value); if (v > 0) S.goals[k] = v; }); save(); $('#modal').classList.remove('show'); rerender(); toast('Ciele uložené'); }
