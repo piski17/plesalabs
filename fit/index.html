@@ -371,7 +371,7 @@ function renderTrening(){
   const w = workoutFor(cur);
   const log = S.wk[cur];
   const dow = parseKey(cur).getDay();
-  let h = '<div class="chips">' + ORDER.map(id => `<button class="chip ${w===id?'on':''}" data-act="pickw" data-w="${id}">${PLAN[id].n}</button>`).join('') + '</div>';
+  let h = '<div class="chips pchips">' + ORDER.map(id => `<button class="chip ${w===id?'on':''}" data-act="pickw" data-w="${id}">${PLAN[id].n}</button>`).join('') + '</div>';
   if (!w){
     h += `<div class="card"><b style="font-size:20px">${dow===0||dow===6?'Víkend, voľno':'Voľný deň'}</b><p class="muted" style="margin:6px 0 0;line-height:1.5">Oddychuj a regeneruj. Ak chceš cvičiť aj tak, vyber si tréning hore.</p></div>`;
     return h;
