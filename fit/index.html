@@ -603,12 +603,12 @@ function dayType(k){ const o = S.dayType && S.dayType[k]; if (o) return o; retur
 function doseOf(x, t){ return t === 't' ? x.doseT : t === 'f' ? (x.doseF === undefined ? x.doseT : x.doseF) : x.doseR; }
 const WK = {t:'wT', f:'wF', r:'wR'};
 const TK = {t:'tT', f:'tF', r:'tR'};
-function timeOf(x, t){ const v = String(x[TK[t]] || ''); return /^\d+$/.test(v) ? v : ''; }
+function timeOf(x, t){ const v = String(x[TK[t]] || ''); return /^\d+(–\d+)?$/.test(v) ? v : ''; }
 function whenTxt(x, t){ const w = whenOf(x, t), m = timeOf(x, t); if (!m) return w; if (w === 'pred výkonom' || w === 'po výkone') return m + ' min ' + w; if (w === 'pred aj po výkone') return m + ' min pred aj po výkone'; return [w, m + ' min'].filter(Boolean).join(' · '); }
 const WHEN = ['', 'pred výkonom', 'po výkone', 'pred aj po výkone', 'ráno', 'večer', 'kedykoľvek'];
 function whenOf(x, t){ const v = x[WK[t]]; return v === undefined ? (x.when || '') : v; }
 const DTN = {t:'cvičenie / posilňovňu', f:'futbal / tréning', r:'voľný deň'};
-function suppsFor(k){ const t = dayType(k); return S.supps.map(normSupp).filter(x => doseOf(x, t)).map((x, i) => [x, i]).sort((a, b) => { const r = y => { const w = whenOf(y, t), m = +timeOf(y, t) || 0; return w === 'pred výkonom' ? -m : w === 'pred aj po výkone' ? 0 : w === 'po výkone' ? 1000 + m : 5000; }; return r(a[0]) - r(b[0]) || a[1] - b[1]; }).map(a => a[0]); }
+function suppsFor(k){ const t = dayType(k); return S.supps.map(normSupp).filter(x => doseOf(x, t)).map((x, i) => [x, i]).sort((a, b) => { const r = y => { const w = whenOf(y, t), m = parseInt(timeOf(y, t)) || 0; return w === 'pred výkonom' ? -m : w === 'pred aj po výkone' ? 0 : w === 'po výkone' ? 1000 + m : 5000; }; return r(a[0]) - r(b[0]) || a[1] - b[1]; }).map(a => a[0]); }
 function streak(id){
   let k = cur, n = 0;
   if (!(S.suppLog[k] || []).includes(id)) k = addDays(k, -1);
@@ -634,7 +634,7 @@ function renderDoplnky(){
   const E = suppEdit ? S.supps.find(x => x.id === suppEdit) : null;
   h += `<h2>${E ? 'Upraviť doplnok' : 'Pridať doplnok'} <span class="muted" style="font-size:15px;font-weight:600">· ${t==='t'?'Cvičenie':t==='f'?'Futbal':'Voľno'}</span></h2><div class="card">
    <label class="fld"><span>Názov</span><input id="sn" placeholder="napr. Proteín" value="${esc(E ? E.n : '')}"></label>
-   ${[['t','Cvičenie / Posilňovňa','napr. 5 g'],['f','Futbal / Tréning','napr. 5 g'],['r','Voľný deň','napr. 5 g']].filter(([k]) => k === t).map(([k,l,ph]) => { const w = E ? whenOf(E, k) : ''; const opts = WHEN.includes(w) ? WHEN : WHEN.concat([w]); return `<div style="font-weight:700;font-size:14px;margin:6px 0 4px">${l}</div><div class="g2"><label class="fld"><span>Množstvo</span><input id="sd_${k}" placeholder="${ph}" value="${esc(E ? doseOf(E, k) : '')}"></label><label class="fld"><span>Kedy</span><select id="sw_${k}">${opts.map(o => `<option value="${esc(o)}" ${o===w?'selected':''}>${o ? esc(o) : '—'}</option>`).join('')}</select></label></div><div class="g2"><label class="fld"><span>Koľko minút</span><input id="st_${k}" inputmode="numeric" placeholder="napr. 30" value="${esc(E ? timeOf(E, k) : '')}"></label><div></div></div>`; }).join('')}
+   ${[['t','Cvičenie / Posilňovňa','napr. 5 g'],['f','Futbal / Tréning','napr. 5 g'],['r','Voľný deň','napr. 5 g']].filter(([k]) => k === t).map(([k,l,ph]) => { const w = E ? whenOf(E, k) : ''; const opts = WHEN.includes(w) ? WHEN : WHEN.concat([w]); return `<div style="font-weight:700;font-size:14px;margin:6px 0 4px">${l}</div><div class="g2"><label class="fld"><span>Množstvo</span><input id="sd_${k}" placeholder="${ph}" value="${esc(E ? doseOf(E, k) : '')}"></label><label class="fld"><span>Kedy</span><select id="sw_${k}">${opts.map(o => `<option value="${esc(o)}" ${o===w?'selected':''}>${o ? esc(o) : '—'}</option>`).join('')}</select></label></div><div class="g2"><label class="fld"><span>Koľko minút</span><input id="st_${k}" placeholder="napr. 30 alebo 45-60" value="${esc(E ? timeOf(E, k) : '')}"></label><div></div></div>`; }).join('')}
    <label class="fld"><span>Poznámka (nepovinné)</span><textarea id="snote" rows="2" placeholder="napr. zapiť veľkým pohárom vody" style="width:100%;background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:11px 12px;font-size:16px;outline:none;resize:vertical;font-family:inherit;color:inherit">${esc(E ? E.note || '' : '')}</textarea></label>
    <button class="btn" data-act="addsupp">${E ? 'Uložiť zmeny' : 'Pridať doplnok'}</button>
    ${E ? `<div class="g2" style="margin-top:8px"><button class="btn sec" data-act="canceledit">Zrušiť</button><button class="btn sec" style="color:var(--bad)" data-act="delsupp" data-id="${E.id}">Odstrániť z tohto dňa</button></div>` : ''}</div>`;
@@ -837,7 +837,7 @@ document.addEventListener('click', e => {
   else if (a === 'canceledit'){ suppEdit = null; rerender(); }
   else if (a === 'delsupp'){ const x = S.supps.find(y => y.id === b.dataset.id), t = dayType(cur); if (x && confirm('Odstrániť ' + x.n + ' z tohto typu dňa?')){ x[{t:'doseT',f:'doseF',r:'doseR'}[t]] = ''; if (!['t','f','r'].some(k => doseOf(x, k))) S.supps = S.supps.filter(y => y !== x); suppEdit = null; save(); rerender(); } }
   else if (a === 'addsupp'){
-    const t = dayType(cur), n = $('#sn').value.trim(), d = $('#sd_' + t).value.trim(), w = $('#sw_' + t).value, tm = $('#st_' + t).value.replace(/\D/g, ''), note = $('#snote').value.trim();
+    const t = dayType(cur), n = $('#sn').value.trim(), d = $('#sd_' + t).value.trim(), w = $('#sw_' + t).value, tm = (m => m ? m[1] + (m[2] ? '–' + m[2] : '') : '')($('#st_' + t).value.match(/(\d+)(?:\s*[-–—]\s*(\d+))?/)), note = $('#snote').value.trim();
     if (!n){ toast('Zadaj názov doplnku'); return; }
     if (!d){ toast('Zadaj množstvo'); return; }
     const E = suppEdit && S.supps.find(x => x.id === suppEdit);
