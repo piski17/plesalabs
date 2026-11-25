@@ -179,6 +179,12 @@ input::placeholder,textarea::placeholder{color:#6b7383}
 input:focus,textarea:focus{outline:none;border-color:var(--fialova);box-shadow:0 0 0 4px rgba(124,92,255,.15)}
 textarea{min-height:140px;resize:vertical}
 .skryte{display:none}
+.mailbox{align-self:center;background:rgba(11,13,18,.55);border:1px solid var(--linka2);border-radius:20px;padding:clamp(22px,4vw,36px);display:flex;flex-direction:column;gap:14px}
+.mb-lbl{color:var(--siva);font-size:14px}
+.mb-mail{font-size:clamp(20px,3.4vw,28px);font-weight:700;letter-spacing:-.5px;word-break:break-all;color:var(--biela)}
+.mb-mail span{color:var(--tyrkys)}
+.mb-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.btn-sec{background:rgba(255,255,255,.06);border:1px solid var(--linka2);color:var(--biela)}
 button.btn{border:0;font-family:inherit}
 
 footer{padding:44px 0;border-top:1px solid var(--linka);color:var(--siva);font-size:14px;margin-top:40px}
@@ -330,14 +336,14 @@ footer .logo svg{width:28px;height:28px}
         <p class="info">Máš projekt, ponuku práce alebo len otázku? Napíš mi a ozvem sa.</p>
         <ul><li>Odpovedám zvyčajne do 24 hodín</li><li>Spolupráca aj pracovné ponuky</li><li>Bez záväzkov, pokojne sa len opýtaj</li></ul>
       </div>
-      <form name="kontakt" method="POST" action="/dakujem.html" data-netlify="true" netlify-honeypot="bot-field">
-        <input type="hidden" name="form-name" value="kontakt">
-        <p class="skryte"><label>Nevypĺňaj: <input name="bot-field"></label></p>
-        <input name="meno" placeholder="Meno" autocomplete="name" required>
-        <input name="email" type="email" placeholder="E-mail" autocomplete="email" required>
-        <textarea name="sprava" placeholder="S čím ti môžem pomôcť?" required></textarea>
-        <button type="submit" class="btn btn-main">Odoslať správu <span class="sip">→</span></button>
-      </form>
+      <div class="mailbox">
+        <span class="mb-lbl">Napíš mi na e-mail</span>
+        <a class="mb-mail" id="mail" href="#">plesa.michal<span>@</span>gmail.com</a>
+        <div class="mb-btns">
+          <a class="btn btn-main" id="mailbtn" href="#">Napísať e-mail <span class="sip">→</span></a>
+          <button type="button" class="btn btn-sec" id="mailcopy">Kopírovať</button>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -355,6 +361,11 @@ footer .logo svg{width:28px;height:28px}
 
 <script>
 document.getElementById('rok').textContent=new Date().getFullYear();
+
+// e-mail (skladá sa až v prehliadači, aby ho ťažšie zbierali spamboti)
+const em=['plesa.michal','gmail.com'].join('@');
+['mail','mailbtn'].forEach(id=>document.getElementById(id).href='mailto:'+em);
+document.getElementById('mailcopy').addEventListener('click',e=>{const b=e.currentTarget;const done=()=>{b.textContent='Skopírované';setTimeout(()=>b.textContent='Kopírovať',1800)};if(navigator.clipboard)navigator.clipboard.writeText(em).then(done,done);else done();});
 
 // menu na mobile
 const nav=document.getElementById('nav'),menu=document.getElementById('menu'),burger=document.getElementById('burger');
