@@ -1,6 +1,6 @@
 {
-  "name": "ZenKodMyFit",
-  "short_name": "ZenKodMyFit",
+  "name": "Fitio",
+  "short_name": "Fitio",
   "description": "Tréning, strava, doplnky a váha na jednom mieste.",
   "lang": "sk",
   "start_url": "./",

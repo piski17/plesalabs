@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ZenKodMyFit</title>
+<title>Fitio</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#0B0D12">
 <link rel="manifest" href="manifest.webmanifest">
@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ZenKodMyFit">
+<meta name="apple-mobile-web-app-title" content="Fitio">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -166,7 +166,7 @@ body.lock{position:fixed;left:0;right:0;overflow:hidden}
   <div class="hrow">
     <div class="brand">
       <svg viewBox="0 0 56 56" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C5CFF"/><stop offset="1" stop-color="#22D3EE"/></linearGradient></defs><rect width="56" height="56" rx="15" fill="url(#lg)"/><path d="M41.86 20A16 16 0 1 1 36 14.14" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path d="M16.5 29h5.5l2.6-6.5 4.6 12 3-7.5h7.3" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span>Zen<span class="grad">Kod</span>MyFit</span>
+      <span>Fit<span class="grad">io</span></span>
     </div>
     <button class="ib" data-act="settings" aria-label="Nastavenia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68 1.65 1.65 0 0 0 10 3.17V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </div>
@@ -309,14 +309,14 @@ async function connectGH(token){
     if (confirm('Na GitHube už máš uložené údaje z iného zariadenia. Načítať ich sem? (údaje na tomto zariadení sa nahradia)')) return (await pullNow(true)) ? 'pulled' : 'err';
     return (await pullNow(false)) ? 'pushed' : 'err';
   }
-  const c = await fetch(GH + '/gists', {method:'POST', headers:ghH(), body:JSON.stringify({description:'ZenKodMyFit – moje údaje (nemazať)', public:false, files:{[GFILE]:{content:JSON.stringify(S)}}})});
+  const c = await fetch(GH + '/gists', {method:'POST', headers:ghH(), body:JSON.stringify({description:'Fitio – moje údaje (nemazať)', public:false, files:{[GFILE]:{content:JSON.stringify(S)}}})});
   if (!c.ok) throw (c.status === 403 || c.status === 404) ? 'Kľúč nemá povolenie „gist“' : 'Nepodarilo sa uložiť na GitHub';
   SY.gist = (await c.json()).id; SY.last = Date.now(); saveSY(); return 'created';
 }
 function syncHtml(){
   if (!SY.gist) return `<p class="muted small" style="line-height:1.55;margin-top:0">Údaje sa uložia do tvojho GitHub účtu a budeš ich mať rovnaké v mobile aj v PC. Na každom zariadení stačí raz vložiť kľúč:</p>
   <ol class="muted small" style="line-height:1.6;padding-left:18px;margin:0 0 10px">
-  <li>Otvor <a href="https://github.com/settings/tokens/new?scopes=gist&description=ZenKodMyFit" target="_blank" rel="noopener" style="color:var(--c)">tento odkaz</a> (vytvorenie kľúča na GitHube).</li>
+  <li>Otvor <a href="https://github.com/settings/tokens/new?scopes=gist&description=Fitio" target="_blank" rel="noopener" style="color:var(--c)">tento odkaz</a> (vytvorenie kľúča na GitHube).</li>
   <li>Pri <b style="color:var(--t)">Expiration</b> vyber <b style="color:var(--t)">No expiration</b>, políčko <b style="color:var(--t)">gist</b> je už zaškrtnuté.</li>
   <li>Dole klikni <b style="color:var(--t)">Generate token</b> a skopíruj kľúč (začína ghp_).</li>
   <li>Vlož ho sem a daj <b style="color:var(--t)">Pripojiť</b>. Ten istý kľúč potom vlož aj na druhom zariadení.</li></ol>
@@ -888,7 +888,7 @@ document.addEventListener('click', e => {
   else if (a === 'savegoals'){ ['kcal','kcalRun','p','f','c','water','start','target'].forEach(k => { const v = num($('#g_' + k).value); if (v > 0) S.goals[k] = v; }); save(); closeModal(); rerender(); toast('Ciele uložené'); }
   else if (a === 'export'){
     const blob = new Blob([JSON.stringify(S, null, 1)], {type:'application/json'});
-    const u = URL.createObjectURL(blob); const l = document.createElement('a'); l.href = u; l.download = 'zenkodmyfit-zaloha-' + todayKey() + '.json'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 2000);
+    const u = URL.createObjectURL(blob); const l = document.createElement('a'); l.href = u; l.download = 'fitio-zaloha-' + todayKey() + '.json'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 2000);
   }
   else if (a === 'reset'){ if (confirm('Naozaj vymazať všetky tréningy, jedlá, doplnky a váhu?')){ S = fresh(); save(); closeModal(); rerender(); toast('Vymazané'); } }
 });
