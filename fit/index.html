@@ -258,7 +258,7 @@ function fresh(){
     goals:{kcal:2700,kcalRun:2900,p:140,f:70,c:370,water:3000,start:73,target:80},
     wk:{}, food:{}, water:{}, weight:{}, suppLog:{},
     foods:FOODS.map((f,i)=>({id:'f'+i,n:f[0],kcal:f[1],p:f[2],f:f[3],c:f[4]})),
-    supps:[{id:'kreatin',n:'Kreatín',doseT:'5 g',doseR:'5 g',when:'kedykoľvek počas dňa'}]};
+    supps:[{id:'kreatin',n:'Kreatín',doseT:'5 g',doseF:'5 g',doseR:'5 g',wT:'po výkone',wF:'po výkone',wR:'kedykoľvek'}]};
 }
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) || fresh(); } catch(e){ S = fresh(); }
@@ -599,13 +599,18 @@ function addScanned(){
 let suppEdit = null;
 function normSupp(x){ if (x.doseT === undefined){ x.doseT = x.dose || ''; x.doseR = x.dose || ''; } return x; }
 function dayType(k){ const o = S.dayType && S.dayType[k]; if (o) return o; return workoutFor(k) ? 't' : 'r'; }
-function suppsFor(k){ const t = dayType(k); return S.supps.map(normSupp).filter(x => (t === 't' ? x.doseT : x.doseR)); }
+function doseOf(x, t){ return t === 't' ? x.doseT : t === 'f' ? (x.doseF === undefined ? x.doseT : x.doseF) : x.doseR; }
+const WK = {t:'wT', f:'wF', r:'wR'};
+const WHEN = ['', 'pred výkonom', 'po výkone', 'pred aj po výkone', 'ráno', 'večer', 'kedykoľvek'];
+function whenOf(x, t){ const v = x[WK[t]]; return v === undefined ? (x.when || '') : v; }
+const DTN = {t:'posilňovňu', f:'futbal', r:'voľný deň'};
+function suppsFor(k){ const t = dayType(k); return S.supps.map(normSupp).filter(x => doseOf(x, t)); }
 function streak(id){
   let k = cur, n = 0;
   if (!(S.suppLog[k] || []).includes(id)) k = addDays(k, -1);
   for (let i = 0; i < 400; i++){
     const s = S.supps.find(x => x.id === id); if (!s) break;
-    const need = dayType(k) === 't' ? s.doseT : s.doseR;
+    const need = doseOf(s, dayType(k));
     if (!need){ k = addDays(k, -1); continue; }
     if (!(S.suppLog[k] || []).includes(id)) break;
     n++; k = addDays(k, -1);
@@ -615,23 +620,22 @@ function streak(id){
 function renderDoplnky(){
   S.supps.forEach(normSupp);
   const t = dayType(cur), taken = S.suppLog[cur] || [], list = suppsFor(cur);
-  let h = `<div class="chips" style="margin-top:2px"><button class="chip ${t==='t'?'on':''}" data-act="daytype" data-t="t">Tréningový deň</button><button class="chip ${t==='r'?'on':''}" data-act="daytype" data-t="r">Voľný deň</button></div>`;
-  h += `<p class="muted small" style="margin:0 0 12px">Podľa plánu je dnes ${workoutFor(cur) ? 'tréningový' : 'voľný'} deň. Ak si to dnes máš inak, prepni hore.</p>`;
+  let h = `<div class="chips" style="margin-top:2px"><button class="chip ${t==='t'?'on':''}" data-act="daytype" data-t="t">Posilňovňa</button><button class="chip ${t==='f'?'on':''}" data-act="daytype" data-t="f">Futbal</button><button class="chip ${t==='r'?'on':''}" data-act="daytype" data-t="r">Voľný deň</button></div>`;
+  h += `<p class="muted small" style="margin:0 0 12px">Podľa plánu je dnes ${workoutFor(cur) ? 'posilňovňa' : 'voľný deň'}. Ak máš futbalový zápas alebo tréning, alebo je to dnes inak, prepni hore.</p>`;
   const dn = list.filter(x => taken.includes(x.id)).length;
   h += `<h2>Doplnky na dnes <span class="muted" style="font-size:15px;font-weight:600">${dn} / ${list.length}</span></h2>`;
-  h += list.length ? list.map(x => { const on = taken.includes(x.id), st = streak(x.id), dose = t === 't' ? x.doseT : x.doseR;
-    return `<div class="card supp"><button class="tick ${on?'on':''}" data-act="supp" data-id="${x.id}" aria-label="Vzaté">${ICON.ok.replace('<svg ','<svg stroke="currentColor" ')}</button><div style="flex:1;min-width:0"><b style="font-size:17px">${esc(x.n)}</b> <span class="grad" style="font-weight:700">${esc(dose)}</span><div class="muted small" style="margin-top:3px">${esc(x.when || '')}${st?`${x.when?' · ':''}séria ${st} ${st===1?'deň':st<5?'dni':'dní'}`:''}</div></div><button class="x" data-act="editsupp" data-id="${x.id}" aria-label="Upraviť"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></div>`; }).join('')
-    : `<div class="card empty">Na ${t==='t'?'tréningový':'voľný'} deň nemáš žiadne doplnky.</div>`;
+  h += list.length ? list.map(x => { const on = taken.includes(x.id), st = streak(x.id), dose = doseOf(x, t);
+    return `<div class="card supp"><button class="tick ${on?'on':''}" data-act="supp" data-id="${x.id}" aria-label="Vzaté">${ICON.ok.replace('<svg ','<svg stroke="currentColor" ')}</button><div style="flex:1;min-width:0"><b style="font-size:17px">${esc(x.n)}</b> <span class="grad" style="font-weight:700">${esc(dose)}</span><div class="muted small" style="margin-top:3px">${esc(whenOf(x, t))}${st?`${whenOf(x, t)?' · ':''}séria ${st} ${st===1?'deň':st<5?'dni':'dní'}`:''}</div></div><button class="x" data-act="editsupp" data-id="${x.id}" aria-label="Upraviť"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></div>`; }).join('')
+    : `<div class="card empty">Na ${DTN[t]} nemáš žiadne doplnky.</div>`;
   const E = suppEdit ? S.supps.find(x => x.id === suppEdit) : null;
   h += `<h2>${E ? 'Upraviť doplnok' : 'Pridať doplnok'}</h2><div class="card">
    <label class="fld"><span>Názov</span><input id="sn" placeholder="napr. Proteín" value="${esc(E ? E.n : '')}"></label>
-   <div class="g2"><label class="fld"><span>Dávka v tréningový deň</span><input id="sdt" placeholder="napr. 5 g" value="${esc(E ? E.doseT : '')}"></label><label class="fld"><span>Dávka vo voľný deň</span><input id="sdr" placeholder="prázdne = neberiem" value="${esc(E ? E.doseR : '')}"></label></div>
-   <label class="fld"><span>Kedy (nepovinné)</span><input id="sw" placeholder="napr. po tréningu" value="${esc(E ? E.when || '' : '')}"></label>
+   ${[['t','Posilňovňa','napr. 5 g'],['f','Futbal','napr. 5 g'],['r','Voľný deň','prázdne = neberiem']].map(([k,l,ph]) => { const w = E ? whenOf(E, k) : ''; const opts = WHEN.includes(w) ? WHEN : WHEN.concat([w]); return `<div style="font-weight:700;font-size:14px;margin:6px 0 4px">${l}</div><div class="g2"><label class="fld"><span>Množstvo</span><input id="sd_${k}" placeholder="${ph}" value="${esc(E ? doseOf(E, k) : '')}"></label><label class="fld"><span>Kedy</span><select id="sw_${k}">${opts.map(o => `<option value="${esc(o)}" ${o===w?'selected':''}>${o ? esc(o) : '—'}</option>`).join('')}</select></label></div>`; }).join('')}
    <button class="btn" data-act="addsupp">${E ? 'Uložiť zmeny' : 'Pridať doplnok'}</button>
    ${E ? `<div class="g2" style="margin-top:8px"><button class="btn sec" data-act="canceledit">Zrušiť</button><button class="btn sec" style="color:var(--bad)" data-act="delsupp" data-id="${E.id}">Odstrániť</button></div>` : ''}</div>`;
-  h += '<div class="note">Kreatín ber každý deň, aj vo voľné dni. Čas nie je dôležitý, hlavné je, aby si ho nevynechával a pil dosť vody. Ak dávku vo voľný deň necháš prázdnu, doplnok sa v ten deň nezobrazí.</div>';
+  h += '<div class="note">Kreatín ber každý deň, aj vo voľné dni. Čas nie je dôležitý, hlavné je, aby si ho nevynechával a pil dosť vody. Ak dávku pre nejaký typ dňa necháš prázdnu, doplnok sa v ten deň nezobrazí.</div>';
   const days = []; for (let i = 6; i >= 0; i--) days.push(addDays(cur, -i));
-  if (S.supps.length) h += '<h3>Posledných 7 dní</h3><div class="card">' + S.supps.map(x => `<div class="row" style="margin:6px 0"><span style="flex:1.2;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.n)}</span>${days.map(d => { const need = dayType(d) === 't' ? x.doseT : x.doseR; const on = (S.suppLog[d]||[]).includes(x.id); return `<span style="flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:700;${on?'background:var(--g);color:#fff':need?'background:var(--card2);color:#9AA3B2':'background:transparent;color:#3A4156;border:1px dashed #272D3F'}">${parseKey(d).getDate()}</span>`; }).join('')}</div>`).join('') + '<p class="muted small" style="margin:8px 0 0">Prerušený rámik = v ten deň ho neberieš.</p></div>';
+  if (S.supps.length) h += '<h3>Posledných 7 dní</h3><div class="card">' + S.supps.map(x => `<div class="row" style="margin:6px 0"><span style="flex:1.2;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.n)}</span>${days.map(d => { const need = doseOf(x, dayType(d)); const on = (S.suppLog[d]||[]).includes(x.id); return `<span style="flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:700;${on?'background:var(--g);color:#fff':need?'background:var(--card2);color:#9AA3B2':'background:transparent;color:#3A4156;border:1px dashed #272D3F'}">${parseKey(d).getDate()}</span>`; }).join('')}</div>`).join('') + '<p class="muted small" style="margin:8px 0 0">Prerušený rámik = v ten deň ho neberieš.</p></div>';
   return h;
 }
 
@@ -828,12 +832,12 @@ document.addEventListener('click', e => {
   else if (a === 'canceledit'){ suppEdit = null; rerender(); }
   else if (a === 'delsupp'){ const x = S.supps.find(y => y.id === b.dataset.id); if (x && confirm('Odstrániť doplnok ' + x.n + '?')){ S.supps = S.supps.filter(y => y !== x); suppEdit = null; save(); rerender(); } }
   else if (a === 'addsupp'){
-    const n = $('#sn').value.trim(), dt = $('#sdt').value.trim(), dr = $('#sdr').value.trim(), w = $('#sw').value.trim();
+    const n = $('#sn').value.trim(), dt = $('#sd_t').value.trim(), df = $('#sd_f').value.trim(), dr = $('#sd_r').value.trim(), wT = $('#sw_t').value, wF = $('#sw_f').value, wR = $('#sw_r').value;
     if (!n){ toast('Zadaj názov doplnku'); return; }
-    if (!dt && !dr){ toast('Zadaj dávku aspoň pre jeden typ dňa'); return; }
+    if (!dt && !df && !dr){ toast('Zadaj dávku aspoň pre jeden typ dňa'); return; }
     const E = suppEdit && S.supps.find(x => x.id === suppEdit);
-    if (E) Object.assign(E, {n, doseT:dt, doseR:dr, when:w, dose:undefined});
-    else S.supps.push({id:'s' + Date.now(), n, doseT:dt, doseR:dr, when:w});
+    if (E) Object.assign(E, {n, doseT:dt, doseF:df, doseR:dr, wT, wF, wR, when:undefined, dose:undefined});
+    else S.supps.push({id:'s' + Date.now(), n, doseT:dt, doseF:df, doseR:dr, wT, wF, wR});
     toast(E ? 'Uložené' : 'Doplnok pridaný'); suppEdit = null; save(); rerender();
   }
   else if (a === 'saveweight'){ const v = num($('#wkg').value); if (v < 30 || v > 250){ toast('Zadaj váhu v kg'); return; } S.weight[cur] = Math.round(v*10)/10;
