@@ -588,9 +588,16 @@ function renderPokrok(){
   const now = a7 || G.start;
   const prog = Math.max(0, Math.min(100, (now - G.start) / (G.target - G.start) * 100));
   const d7 = a7 && a7p ? a7 - a7p : null;
-  h += `<div class="stats"><div><small>Priemer 7 dní</small><b>${a7?fmt(a7,1):'–'}</b></div><div><small>Za týždeň</small><b style="color:${d7==null?'inherit':d7>0.5?'var(--warn)':d7>=0.25?'var(--ok)':'var(--c)'}">${d7==null?'–':(d7>0?'+':'')+fmt(d7,2)}</b></div><div><small>Do cieľa</small><b>${fmt(Math.max(0, G.target-now),1)} kg</b></div></div>`;
+  h += `<div class="stats"><div><small>Priemer 7 dní</small><b>${a7?fmt(a7,1):'–'}</b></div><div><small>Za týždeň</small><b style="color:${d7==null?'inherit':d7>0.5?'var(--warn)':d7>=0.25?'var(--ok)':'var(--c)'}">${d7==null?'–':(d7>0?'+':'')+fmt(d7,2)}</b></div><div><small>Do cieľa</small><b>${fmt(Math.abs(G.target-now),1)} kg</b></div></div>`;
   h += `<div class="card"><div class="row" style="justify-content:space-between"><span class="small muted" style="flex:none">${fmt(G.start,0)} kg</span><b class="small" style="flex:none">${fmt(prog)} %</b><span class="small muted" style="flex:none">${fmt(G.target,0)} kg</span></div><div class="bar" style="margin-top:8px;height:11px"><i style="width:${prog}%"></i></div></div>`;
-  if (a7 && a14){
+  const gl = (S.prof && S.prof.goal) || (G.target < G.start ? 'cut' : 'gain');
+  if (a7 && a14 && gl !== 'gain'){
+    const two = a7 - a14, lim = gl === 'cut' ? -0.5 : -0.3;
+    let adv = 'Ideš dobrým tempom, nič nemeň.';
+    if (two > lim) adv = 'Za 2 týždne si schudol menej, než by si mal. Uber 150–200 kcal denne.';
+    else if (d7 != null && d7 < (gl === 'cut' ? -1 : -0.6)) adv = 'Chudneš príliš rýchlo, mohol by si prichádzať o svaly. Pridaj 150 kcal denne.';
+    h += `<div class="note"><b>Odporúčanie:</b> ${adv}</div>`;
+  } else if (a7 && a14){
     const two = a7 - a14;
     let adv = 'Ideš dobrým tempom, nič nemeň.';
     if (two < 0.5) adv = 'Za 2 týždne si pribral menej než 0,5 kg. Pridaj 150–200 kcal denne (napr. banán a hrsť orechov).';
@@ -620,11 +627,48 @@ function chart(){
 }
 
 /* ---------- Nastavenia ---------- */
+/* ---------- Kalkulačka cieľa ---------- */
+const GOALS = {gain:['Nabrať svaly',300,0.35], rys:['Rysovať postavu',-300,-0.3], cut:['Schudnúť',-500,-0.5]};
+const ACT = [['Sedavá práca, cvičím 3–4× týždenne',1.45],['Sedavá práca, cvičím 5× týždenne a viac',1.55],['Práca v pohybe, cvičím 3–5× týždenne',1.65],['Fyzicky náročná práca a k tomu cvičím',1.8]];
+function calcHtml(){
+  const P = S.prof || {goal:'gain', sex:'m', age:'', h:'', w:curWeight(cur), tw:S.goals.target, act:1};
+  const o = (v, l, c) => `<option value="${v}" ${String(c)===String(v)?'selected':''}>${l}</option>`;
+  const f = (id, l, v, ph) => `<label class="fld"><span>${l}</span><input id="pc_${id}" inputmode="decimal" value="${esc(v ?? '')}" placeholder="${ph||''}"></label>`;
+  return `<div class="chips" style="margin:0 0 8px;padding:0;overflow:visible;flex-wrap:wrap">${Object.entries(GOALS).map(([k,g]) => `<button class="chip ${P.goal===k?'on':''}" data-act="pgoal" data-g="${k}">${g[0]}</button>`).join('')}</div>
+  <div class="g2"><label class="fld"><span>Pohlavie</span><select id="pc_sex">${o('m','Muž',P.sex)}${o('f','Žena',P.sex)}</select></label>${f('age','Vek',P.age,'napr. 25')}${f('h','Výška (cm)',P.h,'napr. 180')}${f('w','Aktuálna váha (kg)',P.w)}${f('tw','Cieľová váha (kg)',P.tw)}</div>
+  <label class="fld"><span>Aktivita</span><select id="pc_act">${ACT.map((a,i) => o(i, a[0], P.act)).join('')}</select></label>
+  <div id="pc_res"></div>`;
+}
+function calcVals(){
+  const g = document.querySelector('[data-act="pgoal"].on'); 
+  const P = {goal:g ? g.dataset.g : 'gain', sex:$('#pc_sex').value, age:num($('#pc_age').value), h:num($('#pc_h').value), w:num($('#pc_w').value), tw:num($('#pc_tw').value), act:+$('#pc_act').value};
+  if (!(P.age > 10 && P.h > 120 && P.w > 30)) return {P};
+  const bmr = 10*P.w + 6.25*P.h - 5*P.age + (P.sex === 'f' ? -161 : 5);
+  const tdee = bmr * ACT[P.act][1];
+  const G = GOALS[P.goal];
+  const kcal = Math.round((tdee + G[1]) / 50) * 50;
+  const p = Math.round(P.w * (P.goal === 'gain' ? 2 : 2.2));
+  const f = Math.round(Math.max(P.w * 0.9, kcal * 0.25 / 9));
+  const c = Math.max(50, Math.round((kcal - p*4 - f*9) / 4));
+  const weeks = P.tw && Math.sign(P.tw - P.w) === Math.sign(G[2]) ? Math.ceil(Math.abs(P.tw - P.w) / Math.abs(G[2])) : null;
+  return {P, tdee:Math.round(tdee/50)*50, kcal, p, f, c, water:Math.round(P.w*35/250)*250, weeks};
+}
+function calcRender(){
+  const el = $('#pc_res'); if (!el) return; const r = calcVals();
+  if (!r.kcal){ el.innerHTML = '<p class="muted small" style="margin:2px 0 8px">Vyplň vek, výšku a váhu a ukážem ti výsledok.</p>'; return; }
+  const wrong = r.P.tw && r.weeks == null && r.P.tw !== r.P.w;
+  el.innerHTML = `<div class="card" style="background:var(--card2)"><div class="row" style="align-items:flex-end;justify-content:space-between"><div style="flex:none"><div class="big grad">${fmt(r.kcal)}</div><span class="muted small">kcal denne</span></div><div style="flex:none;text-align:right" class="muted small">Udržanie váhy: ${fmt(r.tdee)} kcal<br>${GOALS[r.P.goal][1] > 0 ? '+' : ''}${GOALS[r.P.goal][1]} kcal pre cieľ</div></div>
+  <div class="macros"><div><b>${r.p} g</b>Bielkoviny</div><div><b>${r.f} g</b>Tuky</div><div><b>${r.c} g</b>Sacharidy</div></div>
+  <p class="muted small" style="margin:12px 0 0;line-height:1.5">${wrong ? 'Cieľová váha nesedí s vybraným cieľom, skontroluj ju.' : r.weeks ? `Tempo okolo ${fmt(Math.abs(GOALS[r.P.goal][2]),2)} kg týždenne, cieľ zhruba o <b style="color:var(--t)">${r.weeks} týždňov</b>.` : ''} Voda ${fmt(r.water/1000,2)} l. V deň behu +200 kcal.</p></div>
+  <button class="btn" data-act="papply">Použiť tieto ciele</button>`;
+}
 function openSettings(){
+  setTimeout(calcRender, 0);
   const G = S.goals;
   const f = (id, l, v) => `<label class="fld"><span>${l}</span><input id="g_${id}" inputmode="decimal" value="${v}"></label>`;
   $('#sheet').innerHTML = `<div class="top"><h2>Nastavenia</h2><button class="x" data-act="close" aria-label="Zavrieť">${ICON.x}</button></div>
-  <h3>Ciele stravy</h3><div class="g2">${f('kcal','kcal denne',G.kcal)}${f('kcalRun','kcal v deň behu',G.kcalRun)}${f('p','Bielkoviny g',G.p)}${f('f','Tuky g',G.f)}${f('c','Sacharidy g',G.c)}${f('water','Voda ml',G.water)}</div>
+  <h3>Môj cieľ · výpočet kalórií</h3>${calcHtml()}
+  <h3>Ciele stravy (ručne)</h3><div class="g2">${f('kcal','kcal denne',G.kcal)}${f('kcalRun','kcal v deň behu',G.kcalRun)}${f('p','Bielkoviny g',G.p)}${f('f','Tuky g',G.f)}${f('c','Sacharidy g',G.c)}${f('water','Voda ml',G.water)}</div>
   <h3>Váha</h3><div class="g2">${f('start','Štartová kg',G.start)}${f('target','Cieľ kg',G.target)}</div>
   <button class="btn" data-act="savegoals">Uložiť ciele</button>
   <h3>Synchronizácia mobil a PC</h3><div id="syncbox">${syncHtml()}</div>
@@ -725,6 +769,12 @@ document.addEventListener('click', e => {
   else if (a === 'settings') openSettings();
   else if (a === 'close') closeModal();
   else if (a === 'scan') openScan();
+  else if (a === 'pgoal'){ document.querySelectorAll('[data-act="pgoal"]').forEach(x => x.classList.toggle('on', x === b)); calcRender(); }
+  else if (a === 'papply'){
+    const r = calcVals(); if (!r.kcal) return;
+    S.prof = r.P; Object.assign(S.goals, {kcal:r.kcal, kcalRun:r.kcal + 200, p:r.p, f:r.f, c:r.c, water:r.water, start:r.P.w, target:r.P.tw || r.P.w});
+    save(); closeModal(); rerender(); toast('Ciele nastavené: ' + fmt(r.kcal) + ' kcal');
+  }
   else if (a === 'ghjoin'){
     const t = ($('#ghtoken').value || '').trim(); if (t.length < 20){ toast('Vlož celý kľúč'); return; }
     b.disabled = true; b.textContent = 'Pripájam…';
@@ -753,11 +803,13 @@ $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeM
 document.addEventListener('input', e => {
   const t = e.target;
   if (t.id && t.id.startsWith('r_')){ scanSum(); return; }
+  if (t.id && t.id.startsWith('pc_')){ calcRender(); return; }
   if (t.dataset.t){ S.cur = S.cur || {}; S.cur[t.dataset.t] = t.value.trim(); save(); }
   else if (t.dataset.run){ const l = logFor(cur, true); l.run = l.run || {}; l.run[t.dataset.run] = t.value.trim(); save(); }
   else if (t.id === 'fq'){ foodQ = t.value; const y = window.scrollY; render(); const f = $('#fq'); f.focus(); f.setSelectionRange(f.value.length, f.value.length); window.scrollTo(0, y); }
 });
 document.addEventListener('change', e => {
+  if (e.target.id === 'pc_sex' || e.target.id === 'pc_act'){ calcRender(); return; }
   if (e.target.dataset.tg){ S.tgt = S.tgt || {}; const v = e.target.value.trim(); if (v) S.tgt[e.target.dataset.tg] = v; else delete S.tgt[e.target.dataset.tg]; save(); rerender(); toast('Uložené'); return; }
   if (e.target.id === 'portion') portion = num(e.target.value) || 1;
   if (e.target.id === 'imp' && e.target.files[0]){
