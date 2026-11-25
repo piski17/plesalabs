@@ -758,13 +758,16 @@ function openSettings(){
 
 /* ---------- Časovač ---------- */
 let tEnd = 0, tInt = 0, actx = null;
-function beep(){
-  try { if (!actx) return; const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = 880; o.connect(g); g.connect(actx.destination); g.gain.setValueAtTime(.25, actx.currentTime); g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + .6); o.start(); o.stop(actx.currentTime + .6); } catch(e){}
-}
+function tone(f, at, len, vol){ const o = actx.createOscillator(), g = actx.createGain(); o.type = 'square'; o.frequency.value = f; o.connect(g); g.connect(actx.destination); const t = actx.currentTime + at; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.setValueAtTime(vol, t + len - 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t + len); o.start(t); o.stop(t + len + 0.02); }
+function beep(){ try { if (!actx) return; actx.resume && actx.resume(); [0, 0.35, 0.7].forEach((at, i) => tone(i === 2 ? 1320 : 990, at, i === 2 ? 0.6 : 0.25, 0.5)); } catch(e){} }
+function pip(){ try { if (!actx) return; actx.resume && actx.resume(); tone(660, 0, 0.12, 0.35); } catch(e){} }
+let lastPip = 0;
 let tLbl = 'Pauza';
 function startTimer(sec, lbl){
   tLbl = lbl || 'Pauza';
-  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume && actx.resume(); } catch(e){}
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e){}
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume && actx.resume(); const b = actx.createBuffer(1, 1, 22050), src = actx.createBufferSource(); src.buffer = b; src.connect(actx.destination); src.start(0); } catch(e){}
+  lastPip = 0;
   tEnd = Date.now() + sec * 1000; $('#timer').classList.add('show'); $('#timer').classList.remove('end'); tick();
   clearInterval(tInt); tInt = setInterval(tick, 250);
 }
@@ -776,6 +779,7 @@ function tick(){
     setTimeout(() => { if (Date.now() > tEnd + 9000) $('#timer').classList.remove('show'); }, 10000);
     return;
   }
+  if (left <= 3 && left !== lastPip){ lastPip = left; pip(); }
   $('#tlbl').textContent = tLbl; $('#tval').textContent = Math.floor(left/60) + ':' + pad(left % 60);
 }
 
