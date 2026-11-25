@@ -1,6 +1,6 @@
 {
-  "name": "MyFitZenKod",
-  "short_name": "MyFitZenKod",
+  "name": "ZenKodMyFit",
+  "short_name": "ZenKodMyFit",
   "description": "Tréning, strava, doplnky a váha na jednom mieste.",
   "lang": "sk",
   "start_url": "./",
