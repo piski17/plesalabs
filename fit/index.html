@@ -272,14 +272,14 @@ function saveSY(){ try { localStorage.setItem(KEY + '-sync', JSON.stringify(SY))
 let pushT = 0;
 function schedulePush(){ if (!SY.code) return; clearTimeout(pushT); pushT = setTimeout(pushNow, 2500); }
 async function pushNow(){
-  if (!SY.code) return false;
+  if (!SY.code || !/netlify\.app$/.test(location.hostname)) return false;
   try {
     const r = await fetch(SYNC_URL + '?code=' + SY.code, {method:'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify(S)});
     if (!r.ok) throw 0; SY.last = Date.now(); SY.err = ''; saveSY(); return true;
   } catch(e){ SY.err = 'Bez pripojenia, skúsim neskôr'; saveSY(); return false; }
 }
 async function pullNow(force){
-  if (!SY.code) return false;
+  if (!SY.code || !/netlify\.app$/.test(location.hostname)) return false;
   try {
     const r = await fetch(SYNC_URL + '?code=' + SY.code, {cache:'no-store'}); if (!r.ok) throw 0;
     const d = await r.json();
@@ -293,6 +293,7 @@ async function pullNow(force){
 }
 function newCode(){ const a = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'; const r = new Uint32Array(24); crypto.getRandomValues(r); return Array.from(r, x => a[x % a.length]).join(''); }
 function syncHtml(){
+  if (!/netlify\.app$/.test(location.hostname)) return '<p class="muted small" style="line-height:1.5;margin-top:0">Synchronizácia medzi mobilom a PC zatiaľ nie je dostupná. Údaje si medzi zariadeniami prenesieš cez Zálohu nižšie: v jednom stiahni, v druhom obnov.</p>';
   if (!SY.code) return `<p class="muted small" style="line-height:1.5;margin-top:0">Zapni synchronizáciu a údaje budeš mať rovnaké v mobile aj v PC.</p>
   <button class="btn" data-act="syncon">Zapnúť synchronizáciu</button>
   <p class="muted small" style="margin:12px 0 6px">Máš už kód z iného zariadenia?</p>
