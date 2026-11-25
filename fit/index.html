@@ -73,6 +73,15 @@ input.f:focus{border-color:var(--v)}
 input.f::placeholder{color:#5D6577;font-weight:500}
 .okb{width:44px;height:42px;border-radius:11px;background:var(--card2);border:1px solid var(--line);display:grid;place-items:center}
 .okb svg{width:20px;height:20px;stroke:#5D6577}
+.setrow{display:flex;align-items:center;gap:10px;margin-top:10px}
+.dots{display:flex;gap:5px;flex:none}
+.dots i{width:11px;height:11px;border-radius:99px;background:var(--card2);border:1px solid #3A4156}
+.dots i.on{background:var(--ok);border-color:var(--ok)}
+.setrow .st{flex:1;font-size:14px;font-weight:600;color:var(--m)}
+.setrow .st.fin{color:var(--ok)}
+.setb{display:flex;align-items:center;gap:7px;padding:10px 14px;border-radius:12px;background:var(--g);color:#fff;font-weight:700;font-size:14px;flex:none}
+.setb svg{width:18px;height:18px;stroke:#fff}
+.undo{width:38px;height:38px;border-radius:11px;background:var(--card2);border:1px solid var(--line);color:var(--m);font-size:17px;flex:none}
 .okb.on{background:var(--ok);border-color:var(--ok)}
 .okb.on svg{stroke:#06281C}
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:14px;background:var(--g);color:#fff;font-weight:700;font-size:16px}
@@ -265,7 +274,9 @@ const ICON = {
   plus:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'
 };
 
-let cur = todayKey();
+const START = '2026-12-01';
+const firstDay = () => todayKey() < START ? START : todayKey();
+let cur = firstDay();
 let tab = 'trening';
 try { tab = localStorage.getItem(KEY + '-tab') || 'trening'; } catch(e){}
 let editFoods = false, foodQ = '', portion = 1;
@@ -298,7 +309,7 @@ function renderTrening(){
     h += `<div class="ex"><div class="exh"><div><b>Beh s chôdzou</b><small>ľahké tempo</small></div><span class="tg">25–35 min</span></div><input class="f fx" data-t="beh_run" value="${esc((S.cur||{}).beh_run||'')}" placeholder="napr. 1 min beh + 2 min chôdza, 30 min"></div>`;
     h += `<div class="note">${P.pz}</div>`;
   } else {
-    h += '<div class="muted small" style="margin:0 0 10px">Najprv rozcvička 5–8 min. Pri každom cviku máš zapísanú aktuálnu váhu a opakovania. Keď pridáš, len to prepíš.</div>';
+    h += '<div class="muted small" style="margin:0 0 10px">Najprv rozcvička 5–8 min. Do políčka si zapíš váhu a opakovania, keď pridáš, len ich prepíš. Po každej sérii ťukni na tlačidlo a spustí sa pauza.</div>';
     P.ex.forEach((e, i) => h += exCard(w, 'e'+i, i+1, e[0], e[1], e[2], e[3], log, false));
     h += '<h3>Core na konci · 10 min</h3>';
     P.core.forEach((e, i) => h += exCard(w, 'c'+i, i+1, e[0], '', e[1], e[2], log, true));
@@ -308,7 +319,11 @@ function renderTrening(){
 }
 function exCard(w, id, n, name, eq, target, rest, log, isCore){
   const v = (S.cur || {})[w + '_' + id] || '';
-  return `<div class="ex ${isCore?'core':''}"><div class="exh"><div><b>${n}. ${esc(name)}</b><small>${eq?esc(eq)+' · ':''}pauza ${esc(rest)}</small></div><span class="tg">${esc(target)}</span></div><input class="f fx" data-t="${w}_${id}" value="${esc(v)}" placeholder="${isCore?'napr. 45 s':'napr. 40 kg × 8'}"></div>`;
+  const cnt = sets(target), d = Math.min(cnt, (log && log.d && log.d[id]) || 0), fin = d >= cnt;
+  const dots = '<span class="dots">' + Array.from({length:cnt}, (_, i) => `<i class="${i<d?'on':''}"></i>`).join('') + '</span>';
+  const st = fin ? '<span class="st fin">Cvik splnený</span>' : `<span class="st">${d ? 'Hotové ' + d + ' z ' + cnt : 'Séria 1 z ' + cnt}</span>`;
+  const btn = fin ? '' : `<button class="setb" data-act="set" data-id="${id}" data-cnt="${cnt}" data-rest="${restSec(rest)}"${isCore?' data-core="1"':''}>${ICON.ok}${d ? (d+1) + '. séria' : '1. séria'}</button>`;
+  return `<div class="ex ${isCore?'core':''} ${fin?'alldone':''}"><div class="exh"><div><b>${n}. ${esc(name)}</b><small>${eq?esc(eq)+' · ':''}pauza ${esc(rest)}</small></div><span class="tg">${esc(target)}</span></div><input class="f fx" data-t="${w}_${id}" value="${esc(v)}" placeholder="${isCore?'napr. 45 s':'napr. 40 kg × 8'}"><div class="setrow">${dots}${st}${d?`<button class="undo" data-act="unset" data-id="${id}" aria-label="Vrátiť sériu">↺</button>`:''}${btn}</div></div>`;
 }
 function renderHistory(){
   const ks = Object.keys(S.wk).filter(k => S.wk[k].done).sort().reverse().slice(0, 8);
@@ -428,7 +443,9 @@ let tEnd = 0, tInt = 0, actx = null;
 function beep(){
   try { if (!actx) return; const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = 880; o.connect(g); g.connect(actx.destination); g.gain.setValueAtTime(.25, actx.currentTime); g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + .6); o.start(); o.stop(actx.currentTime + .6); } catch(e){}
 }
-function startTimer(sec){
+let tLbl = 'Pauza';
+function startTimer(sec, lbl){
+  tLbl = lbl || 'Pauza';
   try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume && actx.resume(); } catch(e){}
   tEnd = Date.now() + sec * 1000; $('#timer').classList.add('show'); $('#timer').classList.remove('end'); tick();
   clearInterval(tInt); tInt = setInterval(tick, 250);
@@ -441,13 +458,14 @@ function tick(){
     setTimeout(() => { if (Date.now() > tEnd + 9000) $('#timer').classList.remove('show'); }, 10000);
     return;
   }
-  $('#tlbl').textContent = 'Pauza'; $('#tval').textContent = Math.floor(left/60) + ':' + pad(left % 60);
+  $('#tlbl').textContent = tLbl; $('#tval').textContent = Math.floor(left/60) + ':' + pad(left % 60);
 }
 
 /* ---------- Render ---------- */
 function render(){
   const d = parseKey(cur), isT = cur === todayKey();
-  $('#dlbl').innerHTML = `${DNI[d.getDay()]} ${kShort(cur)}${isT ? '' : '<button class="today" data-act="today">Dnes</button>'}<small>${isT ? 'dnes' : cur < todayKey() ? 'minulý deň' : 'budúci deň'}</small>`;
+  $('#dlbl').innerHTML = `${DNI[d.getDay()]} ${kShort(cur)}${isT || cur === firstDay() ? '' : '<button class="today" data-act="today">'+(todayKey() < START ? 'Štart' : 'Dnes')+'</button>'}<small>${cur === START && !isT && todayKey() < START ? 'štart plánu' : isT ? 'dnes' : cur < todayKey() ? 'minulý deň' : 'budúci deň'}</small>`;
+  document.querySelector('[data-act="day"][data-d="-1"]').style.visibility = cur <= START ? 'hidden' : '';
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
   const m = $('#main');
   m.innerHTML = tab === 'strava' ? renderStrava() : tab === 'doplnky' ? renderDoplnky() : tab === 'pokrok' ? renderPokrok() : renderTrening();
@@ -460,19 +478,21 @@ document.addEventListener('click', e => {
   if (tb){ tab = tb.dataset.tab; try { localStorage.setItem(KEY + '-tab', tab); } catch(err){} render(); window.scrollTo(0, 0); return; }
   const b = e.target.closest('[data-act]'); if (!b) return;
   const a = b.dataset.act;
-  if (a === 'day'){ cur = addDays(cur, +b.dataset.d); render(); window.scrollTo(0, 0); }
-  else if (a === 'today'){ cur = todayKey(); render(); window.scrollTo(0, 0); }
+  if (a === 'day'){ const n = addDays(cur, +b.dataset.d); if (n < START) return; cur = n; render(); window.scrollTo(0, 0); }
+  else if (a === 'today'){ cur = firstDay(); render(); window.scrollTo(0, 0); }
   else if (a === 'goto'){ cur = b.dataset.k; render(); window.scrollTo(0, 0); }
   else if (a === 'pickw'){ const l = logFor(cur, true); l.w = b.dataset.w; save(); rerender(); }
+  else if (a === 'set'){
+    const l = logFor(cur, true); l.d = l.d || {}; const id = b.dataset.id, cnt = +b.dataset.cnt;
+    const n = Math.min(cnt, (l.d[id] || 0) + 1); l.d[id] = n; save(); rerender();
+    if (n < cnt){ startTimer(+b.dataset.rest, 'Séria ' + n + ' z ' + cnt + ' hotová · pauza'); toast('Séria ' + n + ' z ' + cnt + ' hotová'); }
+    else { startTimer(b.dataset.core ? 60 : 120, 'Cvik splnený · pauza pred ďalším'); toast('Cvik splnený!'); }
+  }
+  else if (a === 'unset'){ const l = logFor(cur, true); l.d = l.d || {}; const id = b.dataset.id; l.d[id] = Math.max(0, (l.d[id] || 0) - 1); save(); rerender(); }
   else if (a === 'ok'){
     const l = logFor(cur, true); const id = b.dataset.id, i = +b.dataset.i;
     l.s[id] = l.s[id] || []; const s = l.s[id][i] = l.s[id][i] || {};
-    s.ok = !s.ok;
-    if (s.ok){
-      b.closest('.set').querySelectorAll('input').forEach(inp => { if (!inp.value && inp.placeholder && /\d/.test(inp.placeholder)) { s[inp.dataset.k] = inp.placeholder; } });
-      startTimer(+b.dataset.rest);
-    }
-    save(); rerender();
+    s.ok = !s.ok; save(); rerender();
   }
   else if (a === 'done'){ const l = logFor(cur, true); l.done = !l.done; save(); rerender(); if (l.done) toast('Super, tréning zapísaný'); }
   else if (a === 'tadd'){ tEnd += +b.dataset.s * 1000; if (tEnd > Date.now()){ $('#timer').classList.remove('end'); clearInterval(tInt); tInt = setInterval(tick, 250); } tick(); }
