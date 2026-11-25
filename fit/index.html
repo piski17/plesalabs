@@ -347,6 +347,7 @@ const ICON = {
 
 const START = '2026-12-01';
 const firstDay = () => todayKey() < START ? START : todayKey();
+const minDay = () => todayKey() < START ? todayKey() : START;
 let cur = firstDay();
 let tab = 'trening';
 try { tab = localStorage.getItem(KEY + '-tab') || 'trening'; } catch(e){}
@@ -711,7 +712,7 @@ function tick(){
 function render(){
   const d = parseKey(cur), isT = cur === todayKey();
   $('#dlbl').innerHTML = `${DNI[d.getDay()]} ${kShort(cur)}${isT || cur === firstDay() ? '' : '<button class="today" data-act="today">'+(todayKey() < START ? 'Štart' : 'Dnes')+'</button>'}<small>${cur === START && !isT && todayKey() < START ? 'štart plánu' : isT ? 'dnes' : cur < todayKey() ? 'minulý deň' : 'budúci deň'}</small>`;
-  document.querySelector('[data-act="day"][data-d="-1"]').style.visibility = cur <= START ? 'hidden' : '';
+  document.querySelector('[data-act="day"][data-d="-1"]').style.visibility = cur <= minDay() ? 'hidden' : '';
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
   const m = $('#main');
   spyF = ''; m.innerHTML = tab === 'plan' ? renderPlan() : tab === 'strava' ? renderStrava() : tab === 'doplnky' ? renderDoplnky() : tab === 'pokrok' ? renderPokrok() : renderTrening();
@@ -725,7 +726,7 @@ document.addEventListener('click', e => {
   if (tb){ tab = tb.dataset.tab; try { localStorage.setItem(KEY + '-tab', tab); } catch(err){} render(); window.scrollTo(0, 0); return; }
   const b = e.target.closest('[data-act]'); if (!b) return;
   const a = b.dataset.act;
-  if (a === 'day'){ const n = addDays(cur, +b.dataset.d); if (n < START) return; cur = n; render(); window.scrollTo(0, 0); }
+  if (a === 'day'){ const n = addDays(cur, +b.dataset.d); if (n < minDay()) return; cur = n; render(); window.scrollTo(0, 0); }
   else if (a === 'today'){ cur = firstDay(); render(); window.scrollTo(0, 0); }
   else if (a === 'goto'){ cur = b.dataset.k; render(); window.scrollTo(0, 0); }
   else if (a === 'pickw'){ const l = logFor(cur, true); l.w = b.dataset.w; save(); rerender(); }
