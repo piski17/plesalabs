@@ -347,7 +347,7 @@ const ICON = {
 
 const START = '2026-12-01';
 const firstDay = () => todayKey() < START ? START : todayKey();
-const minDay = () => todayKey() < START ? todayKey() : START;
+const minDay = () => START;
 let cur = firstDay();
 let tab = 'trening';
 try { tab = localStorage.getItem(KEY + '-tab') || 'trening'; } catch(e){}
