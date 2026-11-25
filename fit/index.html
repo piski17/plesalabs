@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ZenKod Fit</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0B0D12">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ZenKod Fit">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0B0D12;--card:#141823;--card2:#1B2030;--line:#272D3F;--t:#F5F7FA;--m:#9AA3B2;--v:#7C5CFF;--c:#22D3EE;--ok:#34D399;--warn:#FBBF24;--bad:#F87171;--g:linear-gradient(135deg,#7C5CFF,#22D3EE)}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--t);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent;overflow-x:clip}
+body{background:radial-gradient(ellipse at 10% -10%,rgba(124,92,255,.18),transparent 50%),radial-gradient(ellipse at 100% 0%,rgba(34,211,238,.12),transparent 45%),var(--bg);background-attachment:fixed;min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+header{position:sticky;top:0;z-index:20;background:rgba(11,13,18,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top) + 10px) 16px 10px}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:640px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:-.3px}
+.brand svg{width:30px;height:30px;flex:none}
+.grad{background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ib{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--card);border:1px solid var(--line)}
+.ib svg{width:19px;height:19px}
+.dnav{display:flex;align-items:center;justify-content:space-between;max-width:640px;margin:10px auto 0;gap:8px}
+.dnav .lbl{flex:1;text-align:center;font-weight:700;font-size:15px}
+.dnav .lbl small{display:block;color:var(--m);font-weight:500;font-size:12px}
+.today{font-size:12px;font-weight:700;color:var(--c);padding:4px 10px;border:1px solid rgba(34,211,238,.4);border-radius:99px;margin-left:6px;vertical-align:middle}
+main{max-width:640px;margin:0 auto;padding:16px 16px calc(150px + env(safe-area-inset-bottom))}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(14,16,23,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+nav .in{display:grid;grid-template-columns:repeat(4,1fr);max-width:640px;margin:0 auto}
+nav button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0;font-size:11.5px;font-weight:600;color:var(--m);border-radius:12px}
+nav button svg{width:23px;height:23px}
+nav button.on{color:var(--t)}
+nav button.on svg{stroke:url(#gr)}
+h2{font-size:21px;letter-spacing:-.4px;margin:22px 0 10px}
+h2:first-child{margin-top:4px}
+h3{font-size:15px;margin:18px 0 8px;color:var(--m);font-weight:600;text-transform:uppercase;letter-spacing:1.2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:10px}
+.muted{color:var(--m)}.small{font-size:13px}
+.chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin:0 -16px 8px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 13px;border-radius:99px;background:var(--card);border:1px solid var(--line);font-size:14px;font-weight:600;color:var(--m);white-space:nowrap}
+.chip.on{background:var(--g);color:#fff;border-color:transparent}
+.wtitle{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:8px 0 4px}
+.wtitle b{font-size:30px;letter-spacing:-1px;line-height:1}
+.pill{font-size:12px;font-weight:600;color:var(--m);border:1px solid var(--line);border-radius:99px;padding:4px 10px;white-space:nowrap}
+.pill.ok{color:var(--ok);border-color:rgba(52,211,153,.45)}
+.ex{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:13px 13px 10px;margin-bottom:10px}
+.ex.core{background:#17152A;border-color:#2C2752}
+.ex.alldone{border-color:rgba(52,211,153,.45)}
+.exh{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.exh b{font-size:16px;line-height:1.3}
+.exh small{display:block;color:var(--m);font-size:12.5px;margin-top:2px}
+.tg{flex:none;font-weight:700;font-size:14px;color:#B9A8FF;background:rgba(124,92,255,.14);border-radius:9px;padding:4px 8px;white-space:nowrap}
+.meta{font-size:12.5px;color:var(--m);margin:7px 0 8px;line-height:1.45}
+.meta .up{color:var(--ok);font-weight:600}
+.set{display:grid;grid-template-columns:22px 1fr auto 1fr auto 44px;align-items:center;gap:6px;margin-top:6px}
+.set.c{grid-template-columns:22px 1fr auto 44px}
+.set .n{color:var(--m);font-size:13px;font-weight:700;text-align:center}
+.set .u{color:var(--m);font-size:12.5px}
+input.f{width:100%;min-width:0;background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:10px 10px;font-size:16px;font-weight:600;text-align:center;outline:none}
+select.f{-webkit-appearance:none;appearance:none;background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:10px;font-size:16px;font-weight:600;text-align:center;text-align-last:center;outline:none}
+input.f:focus{border-color:var(--v)}
+input.f::placeholder{color:#5D6577;font-weight:500}
+.okb{width:44px;height:42px;border-radius:11px;background:var(--card2);border:1px solid var(--line);display:grid;place-items:center}
+.okb svg{width:20px;height:20px;stroke:#5D6577}
+.okb.on{background:var(--ok);border-color:var(--ok)}
+.okb.on svg{stroke:#06281C}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:14px;background:var(--g);color:#fff;font-weight:700;font-size:16px}
+.btn.sec{background:var(--card2);border:1px solid var(--line);color:var(--t)}
+.btn.ok{background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.5);color:var(--ok)}
+.btn.sm{padding:10px;font-size:14px;width:auto}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{flex:1}
+.note{font-size:13.5px;line-height:1.5;color:#D6D0FF;background:rgba(124,92,255,.1);border:1px solid rgba(124,92,255,.3);border-radius:14px;padding:11px 13px;margin:10px 0}
+.bar{height:9px;border-radius:99px;background:var(--card2);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--g);transition:width .3s}
+.bar.over i{background:var(--warn)}
+.big{font-size:34px;font-weight:800;letter-spacing:-1.2px;line-height:1}
+.macros{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.macros div{font-size:13px}
+.macros b{display:block;font-size:15px;margin-bottom:5px}
+.list .it{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.list .it:first-child{border-top:0}
+.list .it .tx{flex:1;min-width:0}
+.list .it .tx b{display:block;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list .it .tx small{color:var(--m);font-size:12.5px}
+.x{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--m);flex:none}
+.x svg{width:17px;height:17px}
+.add{width:38px;height:38px;border-radius:11px;background:var(--g);display:grid;place-items:center;flex:none}
+.add svg{width:20px;height:20px;stroke:#fff}
+.fld{display:block;margin-bottom:9px}
+.fld span{display:block;font-size:12.5px;color:var(--m);margin-bottom:4px;font-weight:600}
+.fld input,.fld select{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:11px 12px;font-size:16px;outline:none}
+.fld input:focus{border-color:var(--v)}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g4 .fld span{font-size:11.5px}
+.g4 .fld input{padding:10px 6px;text-align:center}
+.chk{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--m);margin:4px 0 12px}
+.chk input{width:20px;height:20px;accent-color:var(--v)}
+.supp{display:flex;align-items:center;gap:12px}
+.tick{width:52px;height:52px;border-radius:16px;border:2px solid var(--line);background:var(--card2);display:grid;place-items:center;flex:none}
+.tick svg{width:26px;height:26px;stroke:#4A5163}
+.tick.on{background:var(--g);border-color:transparent}
+.tick.on svg{stroke:#fff}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.stats div{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 10px}
+.stats small{display:block;color:var(--m);font-size:12px;margin-bottom:4px}
+.stats b{font-size:20px;letter-spacing:-.5px}
+.chart svg{width:100%;height:auto;display:block}
+.timer{position:fixed;left:12px;right:12px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:25;max-width:616px;margin:0 auto;background:#1E1A38;border:1px solid #3C3478;border-radius:18px;padding:10px 12px;display:none;align-items:center;gap:10px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.timer.show{display:flex}
+.timer .tt{flex:1}
+.timer .tt small{display:block;font-size:12px;color:#B9A8FF;font-weight:600}
+.timer .tt b{font-size:26px;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.timer.end{background:#0F3A2B;border-color:var(--ok)}
+.timer button{padding:9px 11px;border-radius:11px;background:rgba(255,255,255,.08);font-weight:700;font-size:14px}
+.modal{position:fixed;inset:0;z-index:40;background:rgba(5,6,10,.7);display:none;align-items:flex-end;justify-content:center}
+.modal.show{display:flex}
+.sheet{background:var(--bg);border:1px solid var(--line);border-radius:22px 22px 0 0;width:100%;max-width:640px;max-height:88vh;overflow:auto;padding:18px 16px calc(24px + env(safe-area-inset-bottom))}
+.sheet .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.sheet h2{margin:0}
+.empty{text-align:center;color:var(--m);padding:18px 6px;font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);opacity:0;z-index:50;background:#1C2233;border:1px solid var(--line);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;transition:.25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.water{display:flex;align-items:center;gap:10px}
+.water .wv{flex:1}
+.water .wv b{font-size:18px}
+.hist .it b{font-size:14.5px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="gr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C5CFF"/><stop offset="1" stop-color="#22D3EE"/></linearGradient></defs></svg>
+
+<header>
+  <div class="hrow">
+    <div class="brand">
+      <svg viewBox="0 0 56 56" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C5CFF"/><stop offset="1" stop-color="#22D3EE"/></linearGradient></defs><rect width="56" height="56" rx="15" fill="url(#lg)"/><path d="M41.86 20A16 16 0 1 1 36 14.14" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path d="M23.5 21.5l7 6.5-7 6.5" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Zen<span class="grad">Kod</span> Fit</span>
+    </div>
+    <button class="ib" data-act="settings" aria-label="Nastavenia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68 1.65 1.65 0 0 0 10 3.17V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+  </div>
+  <div class="dnav">
+    <button class="ib" data-act="day" data-d="-1" aria-label="Predchádzajúci deň"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="lbl" id="dlbl"></div>
+    <button class="ib" data-act="day" data-d="1" aria-label="Nasledujúci deň"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<div class="timer" id="timer">
+  <div class="tt"><small id="tlbl">Pauza</small><b id="tval">0:00</b></div>
+  <button data-act="tadd" data-s="-15">−15</button>
+  <button data-act="tadd" data-s="15">+15</button>
+  <button data-act="tstop" aria-label="Zavrieť">✕</button>
+</div>
+
+<nav><div class="in">
+  <button data-tab="trening"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/></svg>Tréning</button>
+  <button data-tab="strava"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v8a2 2 0 0 0 2 2v8M5 3v5a2 2 0 0 0 2 2M11 3v5a2 2 0 0 1-2 2M17 21V3c-2 1.5-3 4-3 7 0 2 1 3 3 3"/></svg>Strava</button>
+  <button data-tab="doplnky"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="M9.5 9.5l5 5"/></svg>Doplnky</button>
+  <button data-tab="pokrok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M5 16l4-5 4 3 6-8"/></svg>Pokrok</button>
+</div></nav>
+
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+/* ---------- Plán ---------- */
+const PLAN = {
+  ua:{n:'Upper A',z:'hrudník, chrbát, ramená · sila',ex:[
+    ['Bench press (tlak na lavičke)','lavička, tyč','4 × 5–8','2–3 min'],
+    ['Zhyby nadhmatom','hrazda','4 × 5–8','2 min'],
+    ['Tlak nad hlavu v stoji','tyč zo stojana','3 × 6–8','2 min'],
+    ['Prítah tyče v predklone','tyč','3 × 8–10','90 s'],
+    ['Dipy','bradlá','3 × 8–12','90 s'],
+    ['Bicepsový zdvih s tyčou','tyč','3 × 10–12','60 s']],
+   core:[['Plank','3 × 45–60 s','30 s'],['Prítahy kolien vo vise','3 × 10–15','45 s'],['Russian twist s kotúčom 5 kg','3 × 20','30 s']]},
+  la:{n:'Lower A',z:'stehná, zadok · drep',ex:[
+    ['Drep s tyčou','stojan, tyč','4 × 5–8','2–3 min'],
+    ['Výpady vzad s tyčou na chrbte','stojan, tyč','3 × 8 na nohu','90 s'],
+    ['Bulharský drep (noha na lavičke)','lavička, kotúč','3 × 8–12 na nohu','90 s'],
+    ['Výpony na lýtka s tyčou','stojan, tyč','4 × 12–15','60 s'],
+    ['Predný drep s tyčou','stojan, tyč','3 × 8–10','90 s'],
+    ['Rumunský mŕtvy ťah (ľahší)','tyč','3 × 10–12','90 s']],
+   core:[['Zdvihy nôh vo vise','3 × 8–12','45 s'],['Bočný plank','3 × 30–45 s / strana','30 s'],['Dead bug','3 × 10 / strana','30 s']],
+   pz:'Drep vždy v stojane s nastavenými záchytnými tyčami.'},
+  beh:{n:'Beh + chôdza',z:'ľahká kondícia · 25–35 min',run:true,
+   pz:'Ľahké tempo, pri ktorom sa dá rozprávať. Začni 1 min behu + 2 min chôdze dookola a každý týždeň pridaj trochu behu. Ak ťa po utorku veľmi bolia lýtka alebo kolená, v ten deň len choď.'},
+  ub:{n:'Upper B',z:'chrbát, ramená, ruky · objem',ex:[
+    ['Bench press úzkym úchopom','lavička, tyč','3 × 8–12','90 s'],
+    ['Zhyby podhmatom','hrazda','4 × 6–12','90 s'],
+    ['Tlak nad hlavu v sede','lavička, tyč','3 × 10–12','90 s'],
+    ['Prítah tyče v predklone podhmatom','tyč','3 × 10–12','90 s'],
+    ['Dipy s predklonom (na hrudník)','bradlá','3 × 10–15','60 s'],
+    ['Francúzsky tlak s tyčou v ľahu','lavička, tyč','3 × 10–12','60 s'],
+    ['Upažovanie s kotúčmi 5 kg','2 kotúče','3 × 12–15','60 s']],
+   core:[['Ab rollout s tyčou (z kolien)','3 × 6–10','60 s'],['Plank s ťuknutím do ramena','3 × 20','30 s'],['Superman','3 × 15','30 s']],
+   pz:'Zhyby zatiaľ nejdú? Sprav 4 × 3–5 negatívnych zhybov: vyskoč hore a spúšťaj sa 4–5 s.'},
+  lb:{n:'Lower B',z:'zadná strana stehien, zadok · mŕtvy ťah',ex:[
+    ['Rumunský mŕtvy ťah','tyč','4 × 6–10','2–3 min'],
+    ['Drep s pauzou dole (2 s)','stojan, tyč','3 × 6–8','2 min'],
+    ['Hip thrust (chrbát o lavičku)','lavička, tyč','3 × 10–12','90 s'],
+    ['Step-up na lavičku','lavička, kotúč','3 × 10 na nohu','60 s'],
+    ['Výpony na lýtka na jednej nohe','schod','3 × 12–15','45 s'],
+    ['Good morning s tyčou','stojan, tyč','3 × 10–12','90 s']],
+   core:[['Hollow hold','3 × 20–30 s','30 s'],['Bočný plank s dvíhaním boku','3 × 10 / strana','30 s'],['Horolezec','3 × 30 s','30 s']],
+   pz:'Pri hip thruste daj na tyč uterák alebo penu.'}
+};
+const ORDER = ['ua','la','beh','ub','lb'];
+const DAYMAP = {1:'ua',2:'la',3:'beh',4:'ub',5:'lb'};
+const DNI = ['Nedeľa','Pondelok','Utorok','Streda','Štvrtok','Piatok','Sobota'];
+
+const FOODS = [
+  ['Ovsené vločky 80 g',300,11,6,48],['Mlieko polotučné 300 ml',141,10,5,14],['Banán',105,1,0,27],
+  ['Arašidové maslo 1 lyžica (15 g)',90,4,8,3],['Tvaroh polotučný 250 g',280,32,12,9],['Grécky jogurt 250 g',240,22,13,9],
+  ['Orechy hrsť (30 g)',195,5,19,4],['Kuracie prsia 150 g',165,34,3,0],['Ryža 100 g (suchá)',350,7,1,78],
+  ['Proteín 1 odmerka (30 g)',120,24,2,3],['Vajce 1 ks',70,6,5,0],['Chlieb 1 krajec (40 g)',100,3,1,20],
+  ['Hovädzie 150 g',250,30,14,0],['Losos 150 g',300,30,20,0],['Zemiaky 300 g',230,6,0,51],['Cestoviny 100 g (suché)',355,12,2,72]
+];
+
+/* ---------- Úložisko ---------- */
+const KEY = 'zenkod-fit-v1';
+function fresh(){
+  return {v:1,
+    goals:{kcal:2700,kcalRun:2900,p:140,f:70,c:370,water:3000,start:73,target:80},
+    wk:{}, food:{}, water:{}, weight:{}, suppLog:{},
+    foods:FOODS.map((f,i)=>({id:'f'+i,n:f[0],kcal:f[1],p:f[2],f:f[3],c:f[4]})),
+    supps:[{id:'kreatin',n:'Kreatín',dose:'5 g',when:'každý deň, aj vo voľné dni'}]};
+}
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)) || fresh(); } catch(e){ S = fresh(); }
+S = Object.assign(fresh(), S); S.goals = Object.assign(fresh().goals, S.goals||{});
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast('Nepodarilo sa uložiť'); } }
+
+/* ---------- Pomocníci ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isFinite(n) ? n : 0; };
+const fmt = (n, d=0) => (Math.round(n * 10**d) / 10**d).toLocaleString('sk-SK');
+const pad = n => String(n).padStart(2, '0');
+const key = d => d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+const parseKey = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (k, n) => { const d = parseKey(k); d.setDate(d.getDate()+n); return key(d); };
+const todayKey = () => key(new Date());
+const kShort = k => { const d = parseKey(k); return d.getDate() + '. ' + (d.getMonth()+1) + '.'; };
+const sets = s => parseInt(s, 10) || 3;
+const topRange = s => { const m = s.match(/(\d+)\s*–\s*(\d+)/); return m ? +m[2] : (parseInt(s.split('×')[1]) || 0); };
+const restSec = s => { const m = s.match(/(\d+)/); if (!m) return 60; return /min/.test(s) ? (+m[1]) * 60 + (/–/.test(s) ? 30 : 0) : +m[1]; };
+const ICON = {
+  ok:'<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'
+};
+
+let cur = todayKey();
+let tab = 'trening';
+try { tab = localStorage.getItem(KEY + '-tab') || 'trening'; } catch(e){}
+let editFoods = false, foodQ = '', portion = 1;
+
+function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 1800); }
+
+/* ---------- Tréning ---------- */
+function workoutFor(k){ const l = S.wk[k]; if (l && l.w) return l.w; return DAYMAP[parseKey(k).getDay()] || null; }
+function logFor(k, create){
+  if (!S.wk[k] && create) S.wk[k] = {w:workoutFor(k) || 'ua', done:false, s:{}, run:{}};
+  return S.wk[k];
+}
+function lastFor(w, id, before){
+  const ks = Object.keys(S.wk).filter(k => k < before && S.wk[k].w === w && S.wk[k].s && S.wk[k].s[id] && S.wk[k].s[id].some(x => x.r || x.kg)).sort();
+  if (!ks.length) return null;
+  const k = ks[ks.length-1]; return {k, s:S.wk[k].s[id]};
+}
+function renderTrening(){
+  const w = workoutFor(cur);
+  const log = S.wk[cur];
+  const dow = parseKey(cur).getDay();
+  let h = '<div class="chips">' + ORDER.map(id => `<button class="chip ${w===id?'on':''}" data-act="pickw" data-w="${id}">${PLAN[id].n}</button>`).join('') + '</div>';
+  if (!w){
+    h += `<div class="card"><b style="font-size:20px">${dow===0||dow===6?'Víkend, voľno':'Voľný deň'}</b><p class="muted" style="margin:6px 0 0;line-height:1.5">Oddychuj a regeneruj. Ak chceš cvičiť aj tak, vyber si tréning hore.</p></div>`;
+    return h + renderHistory();
+  }
+  const P = PLAN[w];
+  h += `<div class="wtitle"><b class="grad">${P.n}</b>${log && log.done ? '<span class="pill ok">Hotovo</span>' : '<span class="pill">'+(P.run?'25–35 min':'~60 min')+'</span>'}</div><div class="muted small" style="margin-bottom:12px">${P.z}</div>`;
+  if (P.run){
+    const r = (log && log.run) || {};
+    h += `<div class="card"><div class="g2"><label class="fld"><span>Čas (min)</span><input inputmode="decimal" data-run="min" value="${esc(r.min)}" placeholder="30"></label><label class="fld"><span>Vzdialenosť (km)</span><input inputmode="decimal" data-run="km" value="${esc(r.km)}" placeholder="3,5"></label></div><label class="fld" style="margin:0"><span>Poznámka</span><input data-run="note" value="${esc(r.note)}" placeholder="napr. 1 min beh + 2 min chôdza"></label></div>`;
+    h += `<div class="note">${P.pz}</div>`;
+  } else {
+    h += '<div class="muted small" style="margin:0 0 10px">Najprv rozcvička 5–8 min. Posledné opakovanie ťažké, rezerva 1–2.</div>';
+    P.ex.forEach((e, i) => h += exCard(w, 'e'+i, i+1, e[0], e[1], e[2], e[3], log, false));
+    h += '<h3>Core na konci · 10 min</h3>';
+    P.core.forEach((e, i) => h += exCard(w, 'c'+i, i+1, e[0], '', e[1], e[2], log, true));
+    if (P.pz) h += `<div class="note">${P.pz}</div>`;
+    let tot = 0, dn = 0;
+    [...P.ex.map((e,i)=>['e'+i,e[2]]), ...P.core.map((e,i)=>['c'+i,e[1]])].forEach(([id,s]) => { tot += sets(s); dn += ((log && log.s[id]) || []).filter(x => x.ok).length; });
+    h += `<div class="card"><div class="row" style="justify-content:space-between"><span class="small muted" style="flex:none">Hotové série</span><b style="flex:none">${dn} / ${tot}</b></div><div class="bar" style="margin-top:8px"><i style="width:${tot?dn/tot*100:0}%"></i></div></div>`;
+  }
+  h += log && log.done ? '<button class="btn ok" data-act="done">Tréning hotový · zrušiť</button>' : '<button class="btn" data-act="done">Označiť tréning ako hotový</button>';
+  return h + renderHistory();
+}
+function exCard(w, id, n, name, eq, target, rest, log, isCore){
+  const cnt = sets(target);
+  const cs = (log && log.s[id]) || [];
+  const last = lastFor(w, id, cur);
+  let meta = `Pauza ${rest}`;
+  if (last){
+    meta += ' · Minule (' + kShort(last.k) + '): ' + last.s.filter(x => x.r || x.kg).map(x => isCore ? esc(x.r) : (x.kg ? esc(x.kg)+'×' : '') + esc(x.r)).join(', ');
+    const top = topRange(target);
+    if (!isCore && top && last.s.length >= cnt && last.s.slice(0,cnt).every(x => num(x.r) >= top)) meta += '<br><span class="up">Minule si dal hornú hranicu vo všetkých sériách. Pridaj váhu.</span>';
+  }
+  const all = cs.filter(x => x.ok).length >= cnt;
+  let h = `<div class="ex ${isCore?'core':''} ${all?'alldone':''}"><div class="exh"><div><b>${n}. ${esc(name)}</b>${eq?`<small>${esc(eq)}</small>`:''}</div><span class="tg">${esc(target)}</span></div><div class="meta">${meta}</div>`;
+  for (let i = 0; i < cnt; i++){
+    const s = cs[i] || {}; const L = last && last.s[i] || {};
+    h += isCore
+      ? `<div class="set c"><span class="n">${i+1}</span><input class="f" inputmode="decimal" data-id="${id}" data-i="${i}" data-k="r" value="${esc(s.r)}" placeholder="${esc(L.r||'')}"><span class="u">${/\d\s*s\b/.test(target)?'s':'opak.'}</span><button class="okb ${s.ok?'on':''}" data-act="ok" data-id="${id}" data-i="${i}" data-rest="${restSec(rest)}" aria-label="Séria hotová">${ICON.ok}</button></div>`
+      : `<div class="set"><span class="n">${i+1}</span><input class="f" inputmode="decimal" data-id="${id}" data-i="${i}" data-k="kg" value="${esc(s.kg)}" placeholder="${esc(L.kg||'kg')}"><span class="u">kg</span><input class="f" inputmode="numeric" data-id="${id}" data-i="${i}" data-k="r" value="${esc(s.r)}" placeholder="${esc(L.r||'opak.')}"><span class="u">×</span><button class="okb ${s.ok?'on':''}" data-act="ok" data-id="${id}" data-i="${i}" data-rest="${restSec(rest)}" aria-label="Séria hotová">${ICON.ok}</button></div>`;
+  }
+  return h + '</div>';
+}
+function renderHistory(){
+  const ks = Object.keys(S.wk).filter(k => S.wk[k].done).sort().reverse().slice(0, 8);
+  if (!ks.length) return '';
+  return '<h3>Posledné tréningy</h3><div class="card list hist">' + ks.map(k => {
+    const l = S.wk[k]; const P = PLAN[l.w];
+    let d = '';
+    if (P.run) d = [l.run.min && fmt(num(l.run.min),1)+' min', l.run.km && fmt(num(l.run.km),2)+' km'].filter(Boolean).join(' · ');
+    else { let n = 0, vol = 0; Object.values(l.s||{}).forEach(a => a.forEach(x => { if (x.ok) { n++; vol += num(x.kg)*num(x.r); } })); d = n + ' sérií' + (vol ? ' · ' + fmt(vol) + ' kg celkom' : ''); }
+    return `<button class="it" style="width:100%;text-align:left" data-act="goto" data-k="${k}"><div class="tx"><b>${P.n}</b><small>${DNI[parseKey(k).getDay()]} ${kShort(k)} · ${d}</small></div></button>`;
+  }).join('') + '</div>';
+}
+
+/* ---------- Strava ---------- */
+function kcalGoal(k){ return workoutFor(k) === 'beh' ? S.goals.kcalRun : S.goals.kcal; }
+function renderStrava(){
+  const list = S.food[cur] || [];
+  const t = list.reduce((a, x) => ({kcal:a.kcal+x.kcal, p:a.p+x.p, f:a.f+x.f, c:a.c+x.c}), {kcal:0,p:0,f:0,c:0});
+  const G = S.goals, kg = kcalGoal(cur);
+  const left = kg - t.kcal;
+  const mb = (lbl, v, g) => `<div><b>${fmt(v)} <span class="muted small" style="font-weight:500">/ ${g} g</span></b><div class="bar ${v>g*1.1?'over':''}"><i style="width:${Math.min(100, g ? v/g*100 : 0)}%"></i></div><span class="muted" style="font-size:12px">${lbl}</span></div>`;
+  let h = `<div class="card"><div class="row" style="align-items:flex-end;justify-content:space-between"><div style="flex:none"><div class="big">${fmt(t.kcal)}</div><span class="muted small">z ${fmt(kg)} kcal${kg!==G.kcal?' (deň behu)':''}</span></div><div style="flex:none;text-align:right"><b style="font-size:18px;color:${left<0?'var(--warn)':'var(--c)'}">${fmt(Math.abs(left))}</b><br><span class="muted small">${left<0?'kcal navyše':'kcal zostáva'}</span></div></div><div class="bar ${t.kcal>kg*1.1?'over':''}" style="margin-top:12px;height:11px"><i style="width:${Math.min(100, t.kcal/kg*100)}%"></i></div><div class="macros">${mb('Bielkoviny', t.p, G.p)}${mb('Tuky', t.f, G.f)}${mb('Sacharidy', t.c, G.c)}</div></div>`;
+  const wv = S.water[cur] || 0;
+  h += `<div class="card water"><div class="wv"><b>${fmt(wv/1000,2)} l</b> <span class="muted small">/ ${fmt(G.water/1000,1)} l vody</span><div class="bar" style="margin-top:7px"><i style="width:${Math.min(100, wv/G.water*100)}%"></i></div></div><button class="btn sec sm" data-act="water" data-ml="-250">−</button><button class="btn sm" data-act="water" data-ml="250">+250 ml</button></div>`;
+  h += '<h2>Dnes som zjedol</h2><div class="card list">';
+  h += list.length ? list.map((x, i) => `<div class="it"><div class="tx"><b>${esc(x.n)}</b><small>${fmt(x.kcal)} kcal · B ${fmt(x.p)} · T ${fmt(x.f)} · S ${fmt(x.c)}</small></div><button class="x" data-act="delfood" data-i="${i}" aria-label="Zmazať">${ICON.x}</button></div>`).join('') : '<div class="empty">Zatiaľ nič. Pridaj jedlo nižšie.</div>';
+  h += '</div>';
+  const q = foodQ.trim().toLowerCase();
+  const fl = S.foods.filter(f => !q || f.n.toLowerCase().includes(q));
+  h += `<h2>Pridať z mojich jedál</h2><div class="row" style="margin-bottom:10px"><input class="f" style="text-align:left;flex:2" id="fq" placeholder="Hľadať jedlo…" value="${esc(foodQ)}"><select class="f" id="portion" style="flex:1" aria-label="Porcie">${[0.5,1,1.5,2,3].map(p => `<option value="${p}" ${p==portion?'selected':''}>${fmt(p,1)}×</option>`).join('')}</select></div>`;
+  h += '<div class="card list" id="flist">' + (fl.length ? fl.map(f => `<div class="it"><div class="tx"><b>${esc(f.n)}</b><small>${fmt(f.kcal)} kcal · B ${fmt(f.p)} · T ${fmt(f.f)} · S ${fmt(f.c)}</small></div>${editFoods ? `<button class="x" data-act="delsaved" data-id="${f.id}" aria-label="Odstrániť z mojich jedál">${ICON.x}</button>` : `<button class="add" data-act="addsaved" data-id="${f.id}" aria-label="Pridať">${ICON.plus}</button>`}</div>`).join('') : '<div class="empty">Nič sa nenašlo. Pridaj ho ako nové jedlo nižšie.</div>') + '</div>';
+  h += `<button class="btn sec sm" style="margin:0 0 6px auto;display:flex" data-act="editfoods">${editFoods?'Hotovo':'Upraviť zoznam'}</button>`;
+  h += `<h2>Nové jedlo</h2><div class="card"><label class="fld"><span>Názov</span><input id="nn" placeholder="napr. Kuracie s ryžou"></label><div class="g4"><label class="fld"><span>kcal</span><input id="nk" inputmode="decimal"></label><label class="fld"><span>Bielk. g</span><input id="np" inputmode="decimal"></label><label class="fld"><span>Tuky g</span><input id="nf" inputmode="decimal"></label><label class="fld"><span>Sach. g</span><input id="nc" inputmode="decimal"></label></div><label class="chk"><input type="checkbox" id="nsave" checked> Uložiť aj do mojich jedál</label><button class="btn" data-act="addnew">Pridať jedlo</button></div>`;
+  h += '<p class="muted small" style="line-height:1.5">Hodnoty v zozname sú približné. Presné čísla nájdeš na obale, prípadne ich prepíš.</p>';
+  return h;
+}
+
+/* ---------- Doplnky ---------- */
+function streak(id){
+  let k = cur, n = 0;
+  if (!(S.suppLog[k] || []).includes(id)) k = addDays(k, -1);
+  while ((S.suppLog[k] || []).includes(id)){ n++; k = addDays(k, -1); }
+  return n;
+}
+function renderDoplnky(){
+  const taken = S.suppLog[cur] || [];
+  let h = '<h2>Doplnky na dnes</h2>';
+  h += S.supps.length ? S.supps.map(s => { const on = taken.includes(s.id), st = streak(s.id); return `<div class="card supp"><button class="tick ${on?'on':''}" data-act="supp" data-id="${s.id}" aria-label="Vzaté">${ICON.ok.replace('<svg ','<svg stroke="currentColor" ')}</button><div style="flex:1;min-width:0"><b style="font-size:17px">${esc(s.n)}</b> <span class="muted">${esc(s.dose)}</span><div class="muted small" style="margin-top:3px">${esc(s.when)}${st?` · séria ${st} ${st===1?'deň':st<5?'dni':'dní'}`:''}</div></div><button class="x" data-act="delsupp" data-id="${s.id}" aria-label="Odstrániť">${ICON.x}</button></div>`; }).join('') : '<div class="card empty">Zatiaľ nemáš žiadne doplnky.</div>';
+  h += `<h2>Pridať doplnok</h2><div class="card"><div class="g2"><label class="fld"><span>Názov</span><input id="sn" placeholder="napr. Proteín"></label><label class="fld"><span>Dávka</span><input id="sd" placeholder="napr. 30 g"></label></div><label class="fld"><span>Kedy</span><input id="sw" placeholder="napr. po tréningu"></label><button class="btn" data-act="addsupp">Pridať doplnok</button></div>`;
+  h += '<div class="note">Kreatín ber každý deň, aj vo voľné dni. Čas nie je dôležitý, hlavné je, aby si ho nevynechával a pil dosť vody.</div>';
+  const days = []; for (let i = 6; i >= 0; i--) days.push(addDays(cur, -i));
+  if (S.supps.length) h += '<h3>Posledných 7 dní</h3><div class="card">' + S.supps.map(s => `<div class="row" style="margin:6px 0"><span style="flex:1.2;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.n)}</span>${days.map(d => `<span style="flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:700;${(S.suppLog[d]||[]).includes(s.id)?'background:var(--g);color:#fff':'background:var(--card2);color:#5D6577'}">${parseKey(d).getDate()}</span>`).join('')}</div>`).join('') + '</div>';
+  return h;
+}
+
+/* ---------- Pokrok ---------- */
+function avgWeight(endK, days){
+  const v = []; for (let i = 0; i < days; i++){ const w = S.weight[addDays(endK, -i)]; if (w) v.push(w); }
+  return v.length ? v.reduce((a,b)=>a+b,0) / v.length : null;
+}
+function renderPokrok(){
+  const G = S.goals;
+  const wNow = S.weight[cur];
+  let h = `<h2>Ranná váha</h2><div class="card"><div class="row"><input class="f" id="wkg" inputmode="decimal" style="font-size:22px;flex:2" placeholder="${esc(Object.keys(S.weight).length ? fmt(S.weight[Object.keys(S.weight).sort().pop()],1) : fmt(G.start,1))}" value="${wNow?esc(fmt(wNow,1)):''}"><span class="muted" style="flex:none">kg</span><button class="btn sm" style="flex:1.3" data-act="saveweight">Uložiť</button></div><p class="muted small" style="margin:9px 0 0">Váž sa ráno nalačno, po záchode. Sleduj týždenný priemer, nie jednotlivé dni.</p></div>`;
+  const a7 = avgWeight(cur, 7), a7p = avgWeight(addDays(cur, -7), 7), a14 = avgWeight(addDays(cur, -14), 7);
+  const now = a7 || G.start;
+  const prog = Math.max(0, Math.min(100, (now - G.start) / (G.target - G.start) * 100));
+  const d7 = a7 && a7p ? a7 - a7p : null;
+  h += `<div class="stats"><div><small>Priemer 7 dní</small><b>${a7?fmt(a7,1):'–'}</b></div><div><small>Za týždeň</small><b style="color:${d7==null?'inherit':d7>0.5?'var(--warn)':d7>=0.25?'var(--ok)':'var(--c)'}">${d7==null?'–':(d7>0?'+':'')+fmt(d7,2)}</b></div><div><small>Do cieľa</small><b>${fmt(Math.max(0, G.target-now),1)} kg</b></div></div>`;
+  h += `<div class="card"><div class="row" style="justify-content:space-between"><span class="small muted" style="flex:none">${fmt(G.start,0)} kg</span><b class="small" style="flex:none">${fmt(prog)} %</b><span class="small muted" style="flex:none">${fmt(G.target,0)} kg</span></div><div class="bar" style="margin-top:8px;height:11px"><i style="width:${prog}%"></i></div></div>`;
+  if (a7 && a14){
+    const two = a7 - a14;
+    let adv = 'Ideš dobrým tempom, nič nemeň.';
+    if (two < 0.5) adv = 'Za 2 týždne si pribral menej než 0,5 kg. Pridaj 150–200 kcal denne (napr. banán a hrsť orechov).';
+    else if (d7 != null && d7 > 0.5) adv = 'Priberáš viac než 0,5 kg týždenne. Uber 150 kcal denne, nech priberáš hlavne svaly.';
+    h += `<div class="note"><b>Odporúčanie:</b> ${adv}</div>`;
+  } else h += '<div class="note">Po 2 týždňoch váženia ti tu ukážem, či máš pridať alebo ubrať kalórie.</div>';
+  h += '<h3>Graf váhy</h3><div class="card chart">' + chart() + '</div>';
+  const mon = addDays(cur, -((parseKey(cur).getDay() + 6) % 7));
+  let wdone = 0; for (let i = 0; i < 7; i++){ const l = S.wk[addDays(mon, i)]; if (l && l.done) wdone++; }
+  h += `<h3>Tento týždeň</h3><div class="card"><div class="row" style="justify-content:space-between"><span style="flex:none">Tréningy</span><b style="flex:none">${wdone} / 5</b></div><div class="bar" style="margin-top:8px"><i style="width:${Math.min(100, wdone/5*100)}%"></i></div></div>`;
+  const ks = Object.keys(S.weight).sort().reverse().slice(0, 10);
+  if (ks.length) h += '<h3>Záznamy</h3><div class="card list">' + ks.map(k => `<div class="it"><div class="tx"><b>${fmt(S.weight[k],1)} kg</b><small>${DNI[parseKey(k).getDay()]} ${kShort(k)}</small></div><button class="x" data-act="delweight" data-k="${k}" aria-label="Zmazať">${ICON.x}</button></div>`).join('') + '</div>';
+  return h;
+}
+function chart(){
+  const ks = Object.keys(S.weight).sort().slice(-60);
+  if (ks.length < 2) return '<div class="empty">Graf sa ukáže, keď zapíšeš aspoň 2 váženia.</div>';
+  const W = 360, H = 200, P = 30;
+  const vals = ks.map(k => S.weight[k]);
+  const lo = Math.floor(Math.min(...vals, S.goals.start) - 0.5), hi = Math.ceil(Math.max(...vals, S.goals.target) + 0.5);
+  const t0 = parseKey(ks[0]).getTime(), t1 = Math.max(parseKey(ks[ks.length-1]).getTime(), t0 + 864e5);
+  const x = k => P + (parseKey(k).getTime() - t0) / (t1 - t0) * (W - P - 10);
+  const y = v => 10 + (hi - v) / (hi - lo) * (H - 40);
+  const pts = ks.map(k => `${x(k).toFixed(1)},${y(S.weight[k]).toFixed(1)}`).join(' ');
+  let g = '';
+  for (let v = lo; v <= hi; v += Math.max(1, Math.round((hi - lo) / 4))) g += `<line x1="${P}" x2="${W-10}" y1="${y(v)}" y2="${y(v)}" stroke="#272D3F"/><text x="${P-6}" y="${y(v)+4}" text-anchor="end" font-size="12" fill="#9AA3B2">${v}</text>`;
+  g += `<line x1="${P}" x2="${W-10}" y1="${y(S.goals.target)}" y2="${y(S.goals.target)}" stroke="#34D399" stroke-dasharray="5 5"/><text x="${W-12}" y="${y(S.goals.target)-6}" text-anchor="end" font-size="12" fill="#34D399">cieľ ${S.goals.target} kg</text>`;
+  g += `<text x="${P}" y="${H-6}" font-size="12" fill="#9AA3B2">${kShort(ks[0])}</text><text x="${W-10}" y="${H-6}" text-anchor="end" font-size="12" fill="#9AA3B2">${kShort(ks[ks.length-1])}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Graf váhy">${g}<polyline points="${pts}" fill="none" stroke="url(#gr)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>${ks.map(k => `<circle cx="${x(k)}" cy="${y(S.weight[k])}" r="3.5" fill="#22D3EE"/>`).join('')}</svg>`;
+}
+
+/* ---------- Nastavenia ---------- */
+function openSettings(){
+  const G = S.goals;
+  const f = (id, l, v) => `<label class="fld"><span>${l}</span><input id="g_${id}" inputmode="decimal" value="${v}"></label>`;
+  $('#sheet').innerHTML = `<div class="top"><h2>Nastavenia</h2><button class="x" data-act="close" aria-label="Zavrieť">${ICON.x}</button></div>
+  <h3>Ciele stravy</h3><div class="g2">${f('kcal','kcal denne',G.kcal)}${f('kcalRun','kcal v deň behu',G.kcalRun)}${f('p','Bielkoviny g',G.p)}${f('f','Tuky g',G.f)}${f('c','Sacharidy g',G.c)}${f('water','Voda ml',G.water)}</div>
+  <h3>Váha</h3><div class="g2">${f('start','Štartová kg',G.start)}${f('target','Cieľ kg',G.target)}</div>
+  <button class="btn" data-act="savegoals">Uložiť ciele</button>
+  <h3>Záloha</h3><p class="muted small" style="line-height:1.5;margin-top:0">Všetko sa ukladá len v tomto telefóne. Raz za čas si stiahni zálohu, aby si o nič neprišiel.</p>
+  <div class="g2"><button class="btn sec" data-act="export">Stiahnuť zálohu</button><label class="btn sec" style="cursor:pointer">Obnoviť zálohu<input type="file" id="imp" accept="application/json,.json" style="display:none"></label></div>
+  <h3>Ako si ju dať na plochu</h3><p class="muted small" style="line-height:1.55;margin-top:0"><b style="color:var(--t)">iPhone:</b> otvor v Safari, ťukni na Zdieľať a vyber „Pridať na plochu“.<br><b style="color:var(--t)">Android:</b> v Chrome ťukni na tri bodky a vyber „Pridať na plochu“.</p>
+  <button class="btn sec" style="margin-top:14px;color:var(--bad)" data-act="reset">Vymazať všetky dáta</button>`;
+  $('#modal').classList.add('show');
+}
+
+/* ---------- Časovač ---------- */
+let tEnd = 0, tInt = 0, actx = null;
+function beep(){
+  try { if (!actx) return; const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = 880; o.connect(g); g.connect(actx.destination); g.gain.setValueAtTime(.25, actx.currentTime); g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + .6); o.start(); o.stop(actx.currentTime + .6); } catch(e){}
+}
+function startTimer(sec){
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume && actx.resume(); } catch(e){}
+  tEnd = Date.now() + sec * 1000; $('#timer').classList.add('show'); $('#timer').classList.remove('end'); tick();
+  clearInterval(tInt); tInt = setInterval(tick, 250);
+}
+function tick(){
+  const left = Math.ceil((tEnd - Date.now()) / 1000);
+  if (left <= 0){
+    $('#tval').textContent = '0:00'; $('#tlbl').textContent = 'Pauza skončila, ďalšia séria';
+    $('#timer').classList.add('end'); clearInterval(tInt); beep(); try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e){}
+    setTimeout(() => { if (Date.now() > tEnd + 9000) $('#timer').classList.remove('show'); }, 10000);
+    return;
+  }
+  $('#tlbl').textContent = 'Pauza'; $('#tval').textContent = Math.floor(left/60) + ':' + pad(left % 60);
+}
+
+/* ---------- Render ---------- */
+function render(){
+  const d = parseKey(cur), isT = cur === todayKey();
+  $('#dlbl').innerHTML = `${DNI[d.getDay()]} ${kShort(cur)}${isT ? '' : '<button class="today" data-act="today">Dnes</button>'}<small>${isT ? 'dnes' : cur < todayKey() ? 'minulý deň' : 'budúci deň'}</small>`;
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  const m = $('#main');
+  m.innerHTML = tab === 'strava' ? renderStrava() : tab === 'doplnky' ? renderDoplnky() : tab === 'pokrok' ? renderPokrok() : renderTrening();
+}
+function rerender(){ const y = window.scrollY; render(); window.scrollTo(0, y); }
+
+/* ---------- Udalosti ---------- */
+document.addEventListener('click', e => {
+  const tb = e.target.closest('[data-tab]');
+  if (tb){ tab = tb.dataset.tab; try { localStorage.setItem(KEY + '-tab', tab); } catch(err){} render(); window.scrollTo(0, 0); return; }
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act;
+  if (a === 'day'){ cur = addDays(cur, +b.dataset.d); render(); window.scrollTo(0, 0); }
+  else if (a === 'today'){ cur = todayKey(); render(); window.scrollTo(0, 0); }
+  else if (a === 'goto'){ cur = b.dataset.k; render(); window.scrollTo(0, 0); }
+  else if (a === 'pickw'){ const l = logFor(cur, true); l.w = b.dataset.w; save(); rerender(); }
+  else if (a === 'ok'){
+    const l = logFor(cur, true); const id = b.dataset.id, i = +b.dataset.i;
+    l.s[id] = l.s[id] || []; const s = l.s[id][i] = l.s[id][i] || {};
+    s.ok = !s.ok;
+    if (s.ok){
+      b.closest('.set').querySelectorAll('input').forEach(inp => { if (!inp.value && inp.placeholder && /\d/.test(inp.placeholder)) { s[inp.dataset.k] = inp.placeholder; } });
+      startTimer(+b.dataset.rest);
+    }
+    save(); rerender();
+  }
+  else if (a === 'done'){ const l = logFor(cur, true); l.done = !l.done; save(); rerender(); if (l.done) toast('Super, tréning zapísaný'); }
+  else if (a === 'tadd'){ tEnd += +b.dataset.s * 1000; if (tEnd > Date.now()){ $('#timer').classList.remove('end'); clearInterval(tInt); tInt = setInterval(tick, 250); } tick(); }
+  else if (a === 'tstop'){ clearInterval(tInt); $('#timer').classList.remove('show'); }
+  else if (a === 'water'){ S.water[cur] = Math.max(0, (S.water[cur] || 0) + +b.dataset.ml); save(); rerender(); }
+  else if (a === 'delfood'){ (S.food[cur] || []).splice(+b.dataset.i, 1); save(); rerender(); }
+  else if (a === 'addsaved'){
+    const f = S.foods.find(x => x.id === b.dataset.id); if (!f) return;
+    const p = portion;
+    (S.food[cur] = S.food[cur] || []).push({n: (p !== 1 ? fmt(p,1) + '× ' : '') + f.n, kcal:Math.round(f.kcal*p), p:Math.round(f.p*p), f:Math.round(f.f*p), c:Math.round(f.c*p)});
+    save(); rerender(); toast('Pridané: ' + f.n);
+  }
+  else if (a === 'editfoods'){ editFoods = !editFoods; rerender(); }
+  else if (a === 'delsaved'){ S.foods = S.foods.filter(x => x.id !== b.dataset.id); save(); rerender(); }
+  else if (a === 'addnew'){
+    const n = $('#nn').value.trim(); const k = num($('#nk').value);
+    if (!n || !k){ toast('Zadaj aspoň názov a kcal'); return; }
+    const item = {n, kcal:Math.round(k), p:Math.round(num($('#np').value)), f:Math.round(num($('#nf').value)), c:Math.round(num($('#nc').value))};
+    (S.food[cur] = S.food[cur] || []).push(item);
+    if ($('#nsave').checked && !S.foods.some(x => x.n.toLowerCase() === n.toLowerCase())) S.foods.unshift(Object.assign({id:'u' + Date.now()}, item));
+    save(); rerender(); toast('Jedlo pridané');
+  }
+  else if (a === 'supp'){ const t = S.suppLog[cur] = S.suppLog[cur] || []; const i = t.indexOf(b.dataset.id); if (i < 0) t.push(b.dataset.id); else t.splice(i, 1); save(); rerender(); }
+  else if (a === 'delsupp'){ const s = S.supps.find(x => x.id === b.dataset.id); if (s && confirm('Odstrániť doplnok ' + s.n + '?')){ S.supps = S.supps.filter(x => x !== s); save(); rerender(); } }
+  else if (a === 'addsupp'){
+    const n = $('#sn').value.trim(); if (!n){ toast('Zadaj názov doplnku'); return; }
+    S.supps.push({id:'s' + Date.now(), n, dose:$('#sd').value.trim(), when:$('#sw').value.trim() || 'každý deň'}); save(); rerender(); toast('Doplnok pridaný');
+  }
+  else if (a === 'saveweight'){ const v = num($('#wkg').value); if (v < 30 || v > 250){ toast('Zadaj váhu v kg'); return; } S.weight[cur] = Math.round(v*10)/10; save(); rerender(); toast('Váha uložená'); }
+  else if (a === 'delweight'){ delete S.weight[b.dataset.k]; save(); rerender(); }
+  else if (a === 'settings') openSettings();
+  else if (a === 'close') $('#modal').classList.remove('show');
+  else if (a === 'savegoals'){ ['kcal','kcalRun','p','f','c','water','start','target'].forEach(k => { const v = num($('#g_' + k).value); if (v > 0) S.goals[k] = v; }); save(); $('#modal').classList.remove('show'); rerender(); toast('Ciele uložené'); }
+  else if (a === 'export'){
+    const blob = new Blob([JSON.stringify(S, null, 1)], {type:'application/json'});
+    const u = URL.createObjectURL(blob); const l = document.createElement('a'); l.href = u; l.download = 'zenkod-fit-zaloha-' + todayKey() + '.json'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 2000);
+  }
+  else if (a === 'reset'){ if (confirm('Naozaj vymazať všetky tréningy, jedlá, doplnky a váhu?')){ S = fresh(); save(); $('#modal').classList.remove('show'); rerender(); toast('Vymazané'); } }
+});
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') $('#modal').classList.remove('show'); });
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.id && t.dataset.k){ const l = logFor(cur, true); const a = l.s[t.dataset.id] = l.s[t.dataset.id] || []; const s = a[+t.dataset.i] = a[+t.dataset.i] || {}; s[t.dataset.k] = t.value.trim(); save(); }
+  else if (t.dataset.run){ const l = logFor(cur, true); l.run = l.run || {}; l.run[t.dataset.run] = t.value.trim(); save(); }
+  else if (t.id === 'fq'){ foodQ = t.value; const y = window.scrollY; render(); const f = $('#fq'); f.focus(); f.setSelectionRange(f.value.length, f.value.length); window.scrollTo(0, y); }
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'portion') portion = num(e.target.value) || 1;
+  if (e.target.id === 'imp' && e.target.files[0]){
+    const r = new FileReader();
+    r.onload = () => { try { const d = JSON.parse(r.result); if (!d || !d.goals) throw 0; S = Object.assign(fresh(), d); save(); $('#modal').classList.remove('show'); rerender(); toast('Záloha obnovená'); } catch(err){ toast('Toto nie je platná záloha'); } };
+    r.readAsText(e.target.files[0]);
+  }
+});
+document.addEventListener('visibilitychange', () => { if (!document.hidden && tEnd) tick(); });
+
+render();
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
