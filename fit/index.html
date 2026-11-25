@@ -265,44 +265,62 @@ function save(fromSync){
   if (!fromSync){ S.upd = Date.now(); schedulePush(); }
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast('Nepodarilo sa uložiť'); }
 }
-/* ---------- Synchronizácia ---------- */
-const SYNC_URL = '/api/fit-sync';
-let SY = {}; try { SY = JSON.parse(localStorage.getItem(KEY + '-sync')) || {}; } catch(e){}
-function saveSY(){ try { localStorage.setItem(KEY + '-sync', JSON.stringify(SY)); } catch(e){} }
-let pushT = 0;
-function schedulePush(){ if (!SY.code) return; clearTimeout(pushT); pushT = setTimeout(pushNow, 2500); }
+/* ---------- Synchronizácia (cez súkromný GitHub Gist) ---------- */
+const GH = 'https://api.github.com', GFILE = 'zenkodmyfit.json';
+let SY = {}; try { SY = JSON.parse(localStorage.getItem(KEY + '-gh')) || {}; } catch(e){}
+function saveSY(){ try { localStorage.setItem(KEY + '-gh', JSON.stringify(SY)); } catch(e){} }
+const ghH = () => ({'Authorization':'Bearer ' + SY.token, 'Accept':'application/vnd.github+json'});
+let pushT = 0, dirty = false;
+function schedulePush(){ if (!SY.gist) return; dirty = true; clearTimeout(pushT); pushT = setTimeout(pushNow, 2500); }
 async function pushNow(){
-  if (!SY.code || !/netlify\.app$/.test(location.hostname)) return false;
+  if (!SY.gist) return false;
   try {
-    const r = await fetch(SYNC_URL + '?code=' + SY.code, {method:'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify(S)});
-    if (!r.ok) throw 0; SY.last = Date.now(); SY.err = ''; saveSY(); return true;
-  } catch(e){ SY.err = 'Bez pripojenia, skúsim neskôr'; saveSY(); return false; }
+    const r = await fetch(GH + '/gists/' + SY.gist, {method:'PATCH', headers:ghH(), body:JSON.stringify({files:{[GFILE]:{content:JSON.stringify(S)}}})});
+    if (!r.ok) throw r.status; dirty = false; SY.last = Date.now(); SY.err = ''; saveSY(); return true;
+  } catch(e){ SY.err = e === 401 ? 'Kľúč neplatí, vlož nový' : 'Bez pripojenia, skúsim neskôr'; saveSY(); return false; }
 }
+async function readGist(id){
+  const r = await fetch(GH + '/gists/' + id + '?t=' + Date.now(), {headers:ghH(), cache:'no-store'}); if (!r.ok) throw r.status;
+  const g = await r.json(); const f = g.files && g.files[GFILE]; if (!f) return null;
+  const txt = f.truncated ? await (await fetch(f.raw_url, {cache:'no-store'})).text() : f.content;
+  return JSON.parse(txt);
+}
+function applyRemote(d){ S = Object.assign(fresh(), d); S.goals = Object.assign(fresh().goals, S.goals || {}); save(true); rerender(); }
 async function pullNow(force){
-  if (!SY.code || !/netlify\.app$/.test(location.hostname)) return false;
+  if (!SY.gist) return false;
   try {
-    const r = await fetch(SYNC_URL + '?code=' + SY.code, {cache:'no-store'}); if (!r.ok) throw 0;
-    const d = await r.json();
-    if (d && d.goals && (force || (d.upd || 0) > (S.upd || 0))){
-      S = Object.assign(fresh(), d); S.goals = Object.assign(fresh().goals, S.goals || {});
-      save(true); SY.last = Date.now(); SY.err = ''; saveSY(); rerender(); return 'pulled';
-    }
+    const d = await readGist(SY.gist);
+    if (d && d.goals && (force || (d.upd || 0) > (S.upd || 0))){ applyRemote(d); SY.last = Date.now(); SY.err = ''; saveSY(); return 'pulled'; }
     if (!d || (S.upd || 0) > (d.upd || 0)) await pushNow();
     SY.last = Date.now(); SY.err = ''; saveSY(); return true;
-  } catch(e){ SY.err = 'Bez pripojenia, skúsim neskôr'; saveSY(); return false; }
+  } catch(e){ SY.err = e === 401 ? 'Kľúč neplatí, vlož nový' : 'Bez pripojenia, skúsim neskôr'; saveSY(); return false; }
 }
-function newCode(){ const a = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'; const r = new Uint32Array(24); crypto.getRandomValues(r); return Array.from(r, x => a[x % a.length]).join(''); }
+async function connectGH(token){
+  SY = {token}; 
+  const r = await fetch(GH + '/gists?per_page=100', {headers:ghH(), cache:'no-store'});
+  if (r.status === 401) throw 'Kľúč nie je správny';
+  if (!r.ok) throw 'GitHub teraz neodpovedá, skús o chvíľu';
+  const list = await r.json(); const g = list.find(x => x.files && x.files[GFILE]);
+  if (g){
+    SY.gist = g.id; saveSY();
+    if (confirm('Na GitHube už máš uložené údaje z iného zariadenia. Načítať ich sem? (údaje na tomto zariadení sa nahradia)')) return (await pullNow(true)) ? 'pulled' : 'err';
+    return (await pullNow(false)) ? 'pushed' : 'err';
+  }
+  const c = await fetch(GH + '/gists', {method:'POST', headers:ghH(), body:JSON.stringify({description:'ZenKodMyFit – moje údaje (nemazať)', public:false, files:{[GFILE]:{content:JSON.stringify(S)}}})});
+  if (!c.ok) throw (c.status === 403 || c.status === 404) ? 'Kľúč nemá povolenie „gist“' : 'Nepodarilo sa uložiť na GitHub';
+  SY.gist = (await c.json()).id; SY.last = Date.now(); saveSY(); return 'created';
+}
 function syncHtml(){
-  if (!/netlify\.app$/.test(location.hostname)) return '<p class="muted small" style="line-height:1.5;margin-top:0">Synchronizácia medzi mobilom a PC zatiaľ nie je dostupná. Údaje si medzi zariadeniami prenesieš cez Zálohu nižšie: v jednom stiahni, v druhom obnov.</p>';
-  if (!SY.code) return `<p class="muted small" style="line-height:1.5;margin-top:0">Zapni synchronizáciu a údaje budeš mať rovnaké v mobile aj v PC.</p>
-  <button class="btn" data-act="syncon">Zapnúť synchronizáciu</button>
-  <p class="muted small" style="margin:12px 0 6px">Máš už kód z iného zariadenia?</p>
-  <div class="row"><input class="f" id="synccode" style="flex:2;text-align:left;font-size:14px" placeholder="vlož kód" autocapitalize="off" autocomplete="off" spellcheck="false"><button class="btn sec sm" style="flex:1" data-act="syncjoin">Pripojiť</button></div>`;
-  return `<p class="muted small" style="line-height:1.5;margin-top:0">Synchronizácia je zapnutá. Na druhom zariadení otvor nastavenia a vlož tento kód:</p>
-  <div class="row"><input class="f" id="mycode" readonly value="${SY.code}" style="flex:2;text-align:left;font-size:14px"><button class="btn sec sm" style="flex:1" data-act="synccopy">Kopírovať</button></div>
-  <p class="muted small" style="margin:8px 0 10px">${SY.err ? esc(SY.err) : SY.last ? 'Naposledy: ' + new Date(SY.last).toLocaleString('sk-SK', {day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit'}) : ''}</p>
-  <div class="g2"><button class="btn sec" data-act="syncnow">Synchronizovať</button><button class="btn sec" data-act="syncoff">Vypnúť</button></div>
-  <p class="muted small" style="line-height:1.5">Kód nikomu nedávaj, kto ho má, vidí tvoje údaje.</p>`;
+  if (!SY.gist) return `<p class="muted small" style="line-height:1.55;margin-top:0">Údaje sa uložia do tvojho GitHub účtu a budeš ich mať rovnaké v mobile aj v PC. Na každom zariadení stačí raz vložiť kľúč:</p>
+  <ol class="muted small" style="line-height:1.6;padding-left:18px;margin:0 0 10px">
+  <li>Otvor <a href="https://github.com/settings/tokens/new?scopes=gist&description=ZenKodMyFit" target="_blank" rel="noopener" style="color:var(--c)">tento odkaz</a> (vytvorenie kľúča na GitHube).</li>
+  <li>Pri <b style="color:var(--t)">Expiration</b> vyber <b style="color:var(--t)">No expiration</b>, políčko <b style="color:var(--t)">gist</b> je už zaškrtnuté.</li>
+  <li>Dole klikni <b style="color:var(--t)">Generate token</b> a skopíruj kľúč (začína ghp_).</li>
+  <li>Vlož ho sem a daj <b style="color:var(--t)">Pripojiť</b>. Ten istý kľúč potom vlož aj na druhom zariadení.</li></ol>
+  <div class="row"><input class="f" id="ghtoken" style="flex:2;text-align:left;font-size:14px" placeholder="ghp_…" autocapitalize="off" autocomplete="off" spellcheck="false"><button class="btn sm" style="flex:1" data-act="ghjoin">Pripojiť</button></div>`;
+  return `<p class="muted small" style="line-height:1.5;margin-top:0">Synchronizácia cez GitHub je zapnutá. Všetko, čo zapíšeš, sa samo uloží a druhé zariadenie si to načíta pri otvorení appky.</p>
+  <p class="muted small" style="margin:0 0 10px">${SY.err ? esc(SY.err) : SY.last ? 'Naposledy: ' + new Date(SY.last).toLocaleString('sk-SK', {day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit'}) : ''}</p>
+  <div class="g2"><button class="btn sec" data-act="syncnow">Synchronizovať</button><button class="btn sec" data-act="syncoff">Vypnúť</button></div>`;
 }
 
 /* ---------- Pomocníci ---------- */
@@ -703,16 +721,14 @@ document.addEventListener('click', e => {
   else if (a === 'settings') openSettings();
   else if (a === 'close') closeModal();
   else if (a === 'scan') openScan();
-  else if (a === 'syncon'){ SY = {code:newCode()}; saveSY(); b.disabled = true; pushNow().then(ok => { $('#syncbox').innerHTML = syncHtml(); toast(ok ? 'Synchronizácia zapnutá' : 'Kód je vytvorený, odošlem keď bude internet'); }); }
-  else if (a === 'syncjoin'){
-    const c = ($('#synccode').value || '').trim(); if (!/^[A-Za-z0-9]{20,64}$/.test(c)){ toast('Kód nie je správny'); return; }
-    if (!confirm('Údaje na tomto zariadení sa nahradia údajmi z druhého zariadenia. Pokračovať?')) return;
-    SY = {code:c}; saveSY();
-    pullNow(true).then(r => { $('#syncbox') && ($('#syncbox').innerHTML = syncHtml()); toast(r === 'pulled' ? 'Údaje načítané' : r ? 'Pripojené' : 'Nepodarilo sa pripojiť'); });
+  else if (a === 'ghjoin'){
+    const t = ($('#ghtoken').value || '').trim(); if (t.length < 20){ toast('Vlož celý kľúč'); return; }
+    b.disabled = true; b.textContent = 'Pripájam…';
+    connectGH(t).then(r => { $('#syncbox').innerHTML = syncHtml(); toast(r === 'pulled' ? 'Údaje načítané' : 'Synchronizácia zapnutá'); })
+      .catch(err => { SY = {}; saveSY(); toast(typeof err === 'string' ? err : 'Bez pripojenia'); b.disabled = false; b.textContent = 'Pripojiť'; });
   }
-  else if (a === 'synccopy'){ const i = $('#mycode'); try { navigator.clipboard.writeText(i.value).then(() => toast('Kód skopírovaný')); } catch(e){ i.select(); document.execCommand('copy'); toast('Kód skopírovaný'); } }
-  else if (a === 'syncnow'){ pullNow().then(r => { $('#syncbox').innerHTML = syncHtml(); toast(r ? 'Synchronizované' : 'Bez pripojenia'); }); }
-  else if (a === 'syncoff'){ if (confirm('Vypnúť synchronizáciu na tomto zariadení? Údaje tu zostanú.')){ SY = {}; saveSY(); $('#syncbox').innerHTML = syncHtml(); } }
+  else if (a === 'syncnow'){ pullNow().then(r => { $('#syncbox').innerHTML = syncHtml(); toast(r ? 'Synchronizované' : (SY.err || 'Bez pripojenia')); }); }
+  else if (a === 'syncoff'){ if (confirm('Vypnúť synchronizáciu na tomto zariadení? Údaje tu aj na GitHube zostanú.')){ SY = {}; saveSY(); $('#syncbox').innerHTML = syncHtml(); } }
   else if (a === 'addact'){
     const i = +$('#asp').value, min = num($('#amin').value); if (!min || min > 600){ toast('Zadaj, koľko minút'); return; }
     const sp = SPORTS[i]; const kcal = Math.round((sp[1] - 1) * curWeight(cur) * min / 60 / 10) * 10;
@@ -747,7 +763,7 @@ document.addEventListener('change', e => {
   }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('input.tgi, input.fx')) e.target.blur(); });
-document.addEventListener('visibilitychange', () => { if (!document.hidden){ if (tEnd) tick(); pullNow(); } else if (SY.code){ clearTimeout(pushT); pushNow(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden){ if (tEnd) tick(); pullNow(); } else if (SY.gist && dirty){ clearTimeout(pushT); pushNow(); } });
 
 render(); setHH(); pullNow();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
