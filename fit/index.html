@@ -261,7 +261,48 @@ function fresh(){
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) || fresh(); } catch(e){ S = fresh(); }
 S = Object.assign(fresh(), S); S.goals = Object.assign(fresh().goals, S.goals||{});
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast('Nepodarilo sa uložiť'); } }
+function save(fromSync){
+  if (!fromSync){ S.upd = Date.now(); schedulePush(); }
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast('Nepodarilo sa uložiť'); }
+}
+/* ---------- Synchronizácia ---------- */
+const SYNC_URL = '/api/fit-sync';
+let SY = {}; try { SY = JSON.parse(localStorage.getItem(KEY + '-sync')) || {}; } catch(e){}
+function saveSY(){ try { localStorage.setItem(KEY + '-sync', JSON.stringify(SY)); } catch(e){} }
+let pushT = 0;
+function schedulePush(){ if (!SY.code) return; clearTimeout(pushT); pushT = setTimeout(pushNow, 2500); }
+async function pushNow(){
+  if (!SY.code) return false;
+  try {
+    const r = await fetch(SYNC_URL + '?code=' + SY.code, {method:'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify(S)});
+    if (!r.ok) throw 0; SY.last = Date.now(); SY.err = ''; saveSY(); return true;
+  } catch(e){ SY.err = 'Bez pripojenia, skúsim neskôr'; saveSY(); return false; }
+}
+async function pullNow(force){
+  if (!SY.code) return false;
+  try {
+    const r = await fetch(SYNC_URL + '?code=' + SY.code, {cache:'no-store'}); if (!r.ok) throw 0;
+    const d = await r.json();
+    if (d && d.goals && (force || (d.upd || 0) > (S.upd || 0))){
+      S = Object.assign(fresh(), d); S.goals = Object.assign(fresh().goals, S.goals || {});
+      save(true); SY.last = Date.now(); SY.err = ''; saveSY(); rerender(); return 'pulled';
+    }
+    if (!d || (S.upd || 0) > (d.upd || 0)) await pushNow();
+    SY.last = Date.now(); SY.err = ''; saveSY(); return true;
+  } catch(e){ SY.err = 'Bez pripojenia, skúsim neskôr'; saveSY(); return false; }
+}
+function newCode(){ const a = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'; const r = new Uint32Array(24); crypto.getRandomValues(r); return Array.from(r, x => a[x % a.length]).join(''); }
+function syncHtml(){
+  if (!SY.code) return `<p class="muted small" style="line-height:1.5;margin-top:0">Zapni synchronizáciu a údaje budeš mať rovnaké v mobile aj v PC.</p>
+  <button class="btn" data-act="syncon">Zapnúť synchronizáciu</button>
+  <p class="muted small" style="margin:12px 0 6px">Máš už kód z iného zariadenia?</p>
+  <div class="row"><input class="f" id="synccode" style="flex:2;text-align:left;font-size:14px" placeholder="vlož kód" autocapitalize="off" autocomplete="off" spellcheck="false"><button class="btn sec sm" style="flex:1" data-act="syncjoin">Pripojiť</button></div>`;
+  return `<p class="muted small" style="line-height:1.5;margin-top:0">Synchronizácia je zapnutá. Na druhom zariadení otvor nastavenia a vlož tento kód:</p>
+  <div class="row"><input class="f" id="mycode" readonly value="${SY.code}" style="flex:2;text-align:left;font-size:14px"><button class="btn sec sm" style="flex:1" data-act="synccopy">Kopírovať</button></div>
+  <p class="muted small" style="margin:8px 0 10px">${SY.err ? esc(SY.err) : SY.last ? 'Naposledy: ' + new Date(SY.last).toLocaleString('sk-SK', {day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit'}) : ''}</p>
+  <div class="g2"><button class="btn sec" data-act="syncnow">Synchronizovať</button><button class="btn sec" data-act="syncoff">Vypnúť</button></div>
+  <p class="muted small" style="line-height:1.5">Kód nikomu nedávaj, kto ho má, vidí tvoje údaje.</p>`;
+}
 
 /* ---------- Pomocníci ---------- */
 const $ = s => document.querySelector(s);
@@ -563,6 +604,7 @@ function openSettings(){
   <h3>Ciele stravy</h3><div class="g2">${f('kcal','kcal denne',G.kcal)}${f('kcalRun','kcal v deň behu',G.kcalRun)}${f('p','Bielkoviny g',G.p)}${f('f','Tuky g',G.f)}${f('c','Sacharidy g',G.c)}${f('water','Voda ml',G.water)}</div>
   <h3>Váha</h3><div class="g2">${f('start','Štartová kg',G.start)}${f('target','Cieľ kg',G.target)}</div>
   <button class="btn" data-act="savegoals">Uložiť ciele</button>
+  <h3>Synchronizácia mobil a PC</h3><div id="syncbox">${syncHtml()}</div>
   <h3>Záloha</h3><p class="muted small" style="line-height:1.5;margin-top:0">Všetko sa ukladá len v tomto telefóne. Raz za čas si stiahni zálohu, aby si o nič neprišiel.</p>
   <div class="g2"><button class="btn sec" data-act="export">Stiahnuť zálohu</button><label class="btn sec" style="cursor:pointer">Obnoviť zálohu<input type="file" id="imp" accept="application/json,.json" style="display:none"></label></div>
   <h3>Ako si ju dať na plochu</h3><p class="muted small" style="line-height:1.55;margin-top:0"><b style="color:var(--t)">iPhone:</b> otvor v Safari, ťukni na Zdieľať a vyber „Pridať na plochu“.<br><b style="color:var(--t)">Android:</b> v Chrome ťukni na tri bodky a vyber „Pridať na plochu“.</p>
@@ -660,6 +702,16 @@ document.addEventListener('click', e => {
   else if (a === 'settings') openSettings();
   else if (a === 'close') closeModal();
   else if (a === 'scan') openScan();
+  else if (a === 'syncon'){ SY = {code:newCode()}; saveSY(); b.disabled = true; pushNow().then(ok => { $('#syncbox').innerHTML = syncHtml(); toast(ok ? 'Synchronizácia zapnutá' : 'Kód je vytvorený, odošlem keď bude internet'); }); }
+  else if (a === 'syncjoin'){
+    const c = ($('#synccode').value || '').trim(); if (!/^[A-Za-z0-9]{20,64}$/.test(c)){ toast('Kód nie je správny'); return; }
+    if (!confirm('Údaje na tomto zariadení sa nahradia údajmi z druhého zariadenia. Pokračovať?')) return;
+    SY = {code:c}; saveSY();
+    pullNow(true).then(r => { $('#syncbox') && ($('#syncbox').innerHTML = syncHtml()); toast(r === 'pulled' ? 'Údaje načítané' : r ? 'Pripojené' : 'Nepodarilo sa pripojiť'); });
+  }
+  else if (a === 'synccopy'){ const i = $('#mycode'); try { navigator.clipboard.writeText(i.value).then(() => toast('Kód skopírovaný')); } catch(e){ i.select(); document.execCommand('copy'); toast('Kód skopírovaný'); } }
+  else if (a === 'syncnow'){ pullNow().then(r => { $('#syncbox').innerHTML = syncHtml(); toast(r ? 'Synchronizované' : 'Bez pripojenia'); }); }
+  else if (a === 'syncoff'){ if (confirm('Vypnúť synchronizáciu na tomto zariadení? Údaje tu zostanú.')){ SY = {}; saveSY(); $('#syncbox').innerHTML = syncHtml(); } }
   else if (a === 'addact'){
     const i = +$('#asp').value, min = num($('#amin').value); if (!min || min > 600){ toast('Zadaj, koľko minút'); return; }
     const sp = SPORTS[i]; const kcal = Math.round((sp[1] - 1) * curWeight(cur) * min / 60 / 10) * 10;
@@ -694,9 +746,9 @@ document.addEventListener('change', e => {
   }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('input.tgi, input.fx')) e.target.blur(); });
-document.addEventListener('visibilitychange', () => { if (!document.hidden && tEnd) tick(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden){ if (tEnd) tick(); pullNow(); } else if (SY.code){ clearTimeout(pushT); pushNow(); } });
 
-render(); setHH();
+render(); setHH(); pullNow();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>

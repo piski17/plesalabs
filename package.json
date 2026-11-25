@@ -1,0 +1,8 @@
+{
+  "name": "zenkod-web",
+  "private": true,
+  "description": "Portfólio ZenKod a appka ZenKodMyFit",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}
