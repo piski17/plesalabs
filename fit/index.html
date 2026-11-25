@@ -369,15 +369,24 @@ function renderPlan(){
 }
 
 /* ---------- Strava ---------- */
-function kcalGoal(k){ return workoutFor(k) === 'beh' ? S.goals.kcalRun : S.goals.kcal; }
+const SPORTS = [['Futbal',7],['Beh (ľahký)',8],['Beh (rýchly)',10],['Chôdza svižná',4.3],['Turistika',6],['Bicykel',6.8],['Plávanie',6],['Basketbal',6.5],['Tenis',7.3],['Volejbal',4],['Hokej / korčuľovanie',7],['Bedminton',5.5],['Squash',7.3],['Stolný tenis',4],['Lyžovanie',7],['Posilňovanie navyše',5],['Iný šport (stredná záťaž)',5],['Iný šport (vysoká záťaž)',8]];
+let sportSel = 0;
+function curWeight(k){ const ks = Object.keys(S.weight).filter(x => x <= k).sort(); return ks.length ? S.weight[ks[ks.length-1]] : S.goals.start; }
+function baseGoal(k){ return workoutFor(k) === 'beh' ? S.goals.kcalRun : S.goals.kcal; }
+function actKcal(k){ return (S.act && S.act[k] || []).reduce((a, x) => a + x.kcal, 0); }
+function kcalGoal(k){ return baseGoal(k) + actKcal(k); }
 function renderStrava(){
   const list = S.food[cur] || [];
   const t = list.reduce((a, x) => ({kcal:a.kcal+x.kcal, p:a.p+x.p, f:a.f+x.f, c:a.c+x.c, v:a.v+(x.v||0)}), {kcal:0,p:0,f:0,c:0,v:0});
   const G = S.goals, kg = kcalGoal(cur);
   const left = kg - t.kcal;
   const mb = (lbl, v, g) => `<div><b>${fmt(v)} <span class="muted small" style="font-weight:500">/ ${g} g</span></b><div class="bar ${v>g*1.1?'over':''}"><i style="width:${Math.min(100, g ? v/g*100 : 0)}%"></i></div><span class="muted" style="font-size:12px">${lbl}</span></div>`;
-  let h = `<div class="card"><div class="row" style="align-items:flex-end;justify-content:space-between"><div style="flex:none"><div class="big">${fmt(t.kcal)}</div><span class="muted small">z ${fmt(kg)} kcal${kg!==G.kcal?' (deň behu)':''}</span></div><div style="flex:none;text-align:right"><b style="font-size:18px;color:${left<0?'var(--warn)':'var(--c)'}">${fmt(Math.abs(left))}</b><br><span class="muted small">${left<0?'kcal navyše':'kcal zostáva'}</span></div></div><div class="bar ${t.kcal>kg*1.1?'over':''}" style="margin-top:12px;height:11px"><i style="width:${Math.min(100, t.kcal/kg*100)}%"></i></div><div class="macros">${mb('Bielkoviny', t.p, G.p)}${mb('Tuky', t.f, G.f)}${mb('Sacharidy', t.c, G.c)}</div><div class="muted small" style="margin-top:10px">Vláknina <b style="color:var(--t)">${fmt(t.v)} g</b> / odporúčané 30 g</div></div>`;
+  let h = `<div class="card"><div class="row" style="align-items:flex-end;justify-content:space-between"><div style="flex:none"><div class="big">${fmt(t.kcal)}</div><span class="muted small">z ${fmt(kg)} kcal${actKcal(cur)?' (vrátane športu)':baseGoal(cur)!==G.kcal?' (deň behu)':''}</span></div><div style="flex:none;text-align:right"><b style="font-size:18px;color:${left<0?'var(--warn)':'var(--c)'}">${fmt(Math.abs(left))}</b><br><span class="muted small">${left<0?'kcal navyše':'kcal zostáva'}</span></div></div><div class="bar ${t.kcal>kg*1.1?'over':''}" style="margin-top:12px;height:11px"><i style="width:${Math.min(100, t.kcal/kg*100)}%"></i></div><div class="macros">${mb('Bielkoviny', t.p, G.p)}${mb('Tuky', t.f, G.f)}${mb('Sacharidy', t.c, G.c)}</div><div class="muted small" style="margin-top:10px">Vláknina <b style="color:var(--t)">${fmt(t.v)} g</b> / odporúčané 30 g</div></div>`;
   h += `<button class="btn" style="margin-bottom:10px" data-act="scan"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M13 8v8M16 8v8"/></svg>Naskenovať čiarový kód</button>`;
+  const acts = (S.act && S.act[cur]) || [];
+  h += `<h2>Šport navyše</h2><div class="card">${acts.length ? '<div class="list" style="margin-bottom:10px">' + acts.map((x, i) => `<div class="it"><div class="tx"><b>${esc(x.s)} · ${fmt(x.min)} min</b><small>+${fmt(x.kcal)} kcal k cieľu</small></div><button class="x" data-act="delact" data-i="${i}" aria-label="Zmazať">${ICON.x}</button></div>`).join('') + '</div>' : '<p class="muted small" style="margin:0 0 10px;line-height:1.5">Hral si futbal alebo si robil iný šport mimo plánu? Zapíš ho a appka ti pripočíta kalórie k dnešnému cieľu.</p>'}
+  <div class="row"><select class="f" id="asp" style="flex:2;text-align:left;text-align-last:left">${SPORTS.map((x, i) => `<option value="${i}" ${i==sportSel?'selected':''}>${x[0]}</option>`).join('')}</select><input class="f" id="amin" inputmode="numeric" placeholder="min" style="flex:1"></div>
+  <button class="btn sec" style="margin-top:8px" data-act="addact">Pridať šport</button></div>`;
   const wv = S.water[cur] || 0;
   h += `<div class="card water"><div class="wv"><b>${fmt(wv/1000,2)} l</b> <span class="muted small">/ ${fmt(G.water/1000,1)} l vody</span><div class="bar" style="margin-top:7px"><i style="width:${Math.min(100, wv/G.water*100)}%"></i></div></div><button class="btn sec sm" data-act="water" data-ml="-250">−</button><button class="btn sm" data-act="water" data-ml="250">+250 ml</button></div>`;
   h += '<h2>Dnes som zjedol</h2><div class="card list">';
@@ -651,6 +660,12 @@ document.addEventListener('click', e => {
   else if (a === 'settings') openSettings();
   else if (a === 'close') closeModal();
   else if (a === 'scan') openScan();
+  else if (a === 'addact'){
+    const i = +$('#asp').value, min = num($('#amin').value); if (!min || min > 600){ toast('Zadaj, koľko minút'); return; }
+    const sp = SPORTS[i]; const kcal = Math.round((sp[1] - 1) * curWeight(cur) * min / 60 / 10) * 10;
+    S.act = S.act || {}; (S.act[cur] = S.act[cur] || []).push({s:sp[0], min, kcal}); sportSel = i; save(); rerender(); toast('+' + kcal + ' kcal k dnešnému cieľu');
+  }
+  else if (a === 'delact'){ (S.act[cur] || []).splice(+b.dataset.i, 1); save(); rerender(); }
   else if (a === 'lookup'){ const c = ($('#scode').value || '').replace(/\D/g, ''); if (c.length < 6){ toast('Zadaj celý čiarový kód'); return; } stopCam(); lookup(c); }
   else if (a === 'rescan'){ $('#sres').innerHTML = ''; $('#scode').value = ''; const vd = document.querySelector('.vid'); if (vd) vd.style.display = ''; startCam(); }
   else if (a === 'addscan') addScanned();
