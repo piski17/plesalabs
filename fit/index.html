@@ -111,6 +111,7 @@ input.f::placeholder{color:#5D6577;font-weight:500}
 .add{width:38px;height:38px;border-radius:11px;background:var(--g);display:grid;place-items:center;flex:none}
 .add svg{width:20px;height:20px;stroke:#fff}
 .fld{display:block;margin-bottom:9px}
+.dtype{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:2px 0 10px}.dtype .chip{white-space:normal;text-align:center;line-height:1.2;padding:9px 6px;margin:0;width:100%}
 .fld span{display:block;font-size:12.5px;color:var(--m);margin-bottom:4px;font-weight:600}
 .fld input,.fld select{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:11px 12px;font-size:16px;outline:none}
 .fld input:focus{border-color:var(--v)}
@@ -603,7 +604,7 @@ function doseOf(x, t){ return t === 't' ? x.doseT : t === 'f' ? (x.doseF === und
 const WK = {t:'wT', f:'wF', r:'wR'};
 const WHEN = ['', 'pred výkonom', 'po výkone', 'pred aj po výkone', 'ráno', 'večer', 'kedykoľvek'];
 function whenOf(x, t){ const v = x[WK[t]]; return v === undefined ? (x.when || '') : v; }
-const DTN = {t:'posilňovňu', f:'futbal', r:'voľný deň'};
+const DTN = {t:'cvičenie / posilňovňu', f:'futbal / tréning', r:'voľný deň'};
 function suppsFor(k){ const t = dayType(k); return S.supps.map(normSupp).filter(x => doseOf(x, t)); }
 function streak(id){
   let k = cur, n = 0;
@@ -620,8 +621,8 @@ function streak(id){
 function renderDoplnky(){
   S.supps.forEach(normSupp);
   const t = dayType(cur), taken = S.suppLog[cur] || [], list = suppsFor(cur);
-  let h = `<div class="chips" style="margin-top:2px"><button class="chip ${t==='t'?'on':''}" data-act="daytype" data-t="t">Posilňovňa</button><button class="chip ${t==='f'?'on':''}" data-act="daytype" data-t="f">Futbal</button><button class="chip ${t==='r'?'on':''}" data-act="daytype" data-t="r">Voľný deň</button></div>`;
-  h += `<p class="muted small" style="margin:0 0 12px">Podľa plánu je dnes ${workoutFor(cur) ? 'posilňovňa' : 'voľný deň'}. Ak máš futbalový zápas alebo tréning, alebo je to dnes inak, prepni hore.</p>`;
+  let h = `<div class="dtype"><button class="chip ${t==='t'?'on':''}" data-act="daytype" data-t="t">Cvičenie /<br>Posilňovňa</button><button class="chip ${t==='f'?'on':''}" data-act="daytype" data-t="f">Futbal /<br>Tréning</button><button class="chip ${t==='r'?'on':''}" data-act="daytype" data-t="r">Voľný<br>deň</button></div>`;
+  h += `<p class="muted small" style="margin:0 0 12px">Podľa plánu je dnes ${workoutFor(cur) ? 'cvičenie / posilňovňa' : 'voľný deň'}. Ak máš futbal, alebo je to dnes inak, prepni hore.</p>`;
   const dn = list.filter(x => taken.includes(x.id)).length;
   h += `<h2>Doplnky na dnes <span class="muted" style="font-size:15px;font-weight:600">${dn} / ${list.length}</span></h2>`;
   h += list.length ? list.map(x => { const on = taken.includes(x.id), st = streak(x.id), dose = doseOf(x, t);
@@ -630,7 +631,7 @@ function renderDoplnky(){
   const E = suppEdit ? S.supps.find(x => x.id === suppEdit) : null;
   h += `<h2>${E ? 'Upraviť doplnok' : 'Pridať doplnok'}</h2><div class="card">
    <label class="fld"><span>Názov</span><input id="sn" placeholder="napr. Proteín" value="${esc(E ? E.n : '')}"></label>
-   ${[['t','Posilňovňa','napr. 5 g'],['f','Futbal','napr. 5 g'],['r','Voľný deň','prázdne = neberiem']].map(([k,l,ph]) => { const w = E ? whenOf(E, k) : ''; const opts = WHEN.includes(w) ? WHEN : WHEN.concat([w]); return `<div style="font-weight:700;font-size:14px;margin:6px 0 4px">${l}</div><div class="g2"><label class="fld"><span>Množstvo</span><input id="sd_${k}" placeholder="${ph}" value="${esc(E ? doseOf(E, k) : '')}"></label><label class="fld"><span>Kedy</span><select id="sw_${k}">${opts.map(o => `<option value="${esc(o)}" ${o===w?'selected':''}>${o ? esc(o) : '—'}</option>`).join('')}</select></label></div>`; }).join('')}
+   ${[['t','Cvičenie / Posilňovňa','napr. 5 g'],['f','Futbal / Tréning','napr. 5 g'],['r','Voľný deň','prázdne = neberiem']].map(([k,l,ph]) => { const w = E ? whenOf(E, k) : ''; const opts = WHEN.includes(w) ? WHEN : WHEN.concat([w]); return `<div style="font-weight:700;font-size:14px;margin:6px 0 4px">${l}</div><div class="g2"><label class="fld"><span>Množstvo</span><input id="sd_${k}" placeholder="${ph}" value="${esc(E ? doseOf(E, k) : '')}"></label><label class="fld"><span>Kedy</span><select id="sw_${k}">${opts.map(o => `<option value="${esc(o)}" ${o===w?'selected':''}>${o ? esc(o) : '—'}</option>`).join('')}</select></label></div>`; }).join('')}
    <button class="btn" data-act="addsupp">${E ? 'Uložiť zmeny' : 'Pridať doplnok'}</button>
    ${E ? `<div class="g2" style="margin-top:8px"><button class="btn sec" data-act="canceledit">Zrušiť</button><button class="btn sec" style="color:var(--bad)" data-act="delsupp" data-id="${E.id}">Odstrániť</button></div>` : ''}</div>`;
   h += '<div class="note">Kreatín ber každý deň, aj vo voľné dni. Čas nie je dôležitý, hlavné je, aby si ho nevynechával a pil dosť vody. Ak dávku pre nejaký typ dňa necháš prázdnu, doplnok sa v ten deň nezobrazí.</div>';
