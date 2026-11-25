@@ -47,6 +47,7 @@ h3{font-size:15px;margin:18px 0 8px;color:var(--m);font-weight:600;text-transfor
 .muted{color:var(--m)}.small{font-size:13px}
 .chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin:0 -16px 8px;padding-left:16px;padding-right:16px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
+.pchips{position:sticky;top:var(--hh, 120px);z-index:15;background:rgba(11,13,18,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding-top:8px;padding-bottom:8px;margin-top:-4px;border-bottom:1px solid var(--line)}
 .chip{flex:none;padding:8px 13px;border-radius:99px;background:var(--card);border:1px solid var(--line);font-size:14px;font-weight:600;color:var(--m);white-space:nowrap}
 .chip.on{background:var(--g);color:#fff;border-color:transparent}
 .wtitle{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:8px 0 4px}
@@ -343,9 +344,23 @@ function renderHistory(){
 
 /* ---------- Plán (obrázky) ---------- */
 const PLAN_IMG = [['1-pondelok-upper-a','Pondelok · Upper A'],['2-utorok-lower-a','Utorok · Lower A'],['3-streda-beh','Streda · Beh + chôdza'],['4-stvrtok-upper-b','Štvrtok · Upper B'],['5-piatok-lower-b','Piatok · Lower B'],['6-strava-a-pravidla','Strava a pravidlá']];
+function setActiveChip(f){
+  document.querySelectorAll('.pchips .chip').forEach(c => c.classList.toggle('on', c.id === 'c-' + f));
+  const c = document.getElementById('c-' + f); if (c){ const bar = c.parentElement; bar.scrollTo({left: c.offsetLeft - bar.clientWidth/2 + c.clientWidth/2, behavior:'smooth'}); }
+}
+let spyF = '';
+window.addEventListener('scroll', () => {
+  if (tab !== 'plan') return;
+  const lim = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh')) || 120) + 90;
+  let f = PLAN_IMG[0][0];
+  PLAN_IMG.forEach(([k]) => { const el = document.getElementById('p-' + k); if (el && el.getBoundingClientRect().top <= lim) f = k; });
+  if (f !== spyF){ spyF = f; setActiveChip(f); }
+}, {passive:true});
+function setHH(){ const h = document.querySelector('header'); if (h) document.documentElement.style.setProperty('--hh', h.offsetHeight + 'px'); }
+window.addEventListener('resize', setHH);
 function renderPlan(){
-  return '<h2>Tréningový plán</h2><div class="chips">' + PLAN_IMG.map(([f,t]) => `<button class="chip" data-act="jump" data-f="${f}">${t.split(' · ')[1] || t}</button>`).join('') + '</div>' +
-    PLAN_IMG.map(([f,t]) => `<div id="p-${f}" style="scroll-margin-top:130px;margin-bottom:14px"><h3>${t}</h3><a href="plan/${f}.jpg" target="_blank" rel="noopener"><img src="plan/${f}.jpg" alt="${t}" loading="lazy" style="width:100%;display:block;border-radius:16px;border:1px solid var(--line)"></a></div>`).join('');
+  return '<h2>Tréningový plán</h2><div class="chips pchips">' + PLAN_IMG.map(([f,t]) => `<button class="chip" data-act="jump" data-f="${f}" id="c-${f}">${t.split(' · ')[1] || t}</button>`).join('') + '</div>' +
+    PLAN_IMG.map(([f,t]) => `<div id="p-${f}" style="scroll-margin-top:calc(var(--hh, 120px) + 64px);margin-bottom:14px"><h3>${t}</h3><a href="plan/${f}.jpg" target="_blank" rel="noopener"><img src="plan/${f}.jpg" alt="${t}" loading="lazy" style="width:100%;display:block;border-radius:16px;border:1px solid var(--line)"></a></div>`).join('');
 }
 
 /* ---------- Strava ---------- */
@@ -479,7 +494,8 @@ function render(){
   document.querySelector('[data-act="day"][data-d="-1"]').style.visibility = cur <= START ? 'hidden' : '';
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
   const m = $('#main');
-  m.innerHTML = tab === 'plan' ? renderPlan() : tab === 'strava' ? renderStrava() : tab === 'doplnky' ? renderDoplnky() : tab === 'pokrok' ? renderPokrok() : renderTrening();
+  spyF = ''; m.innerHTML = tab === 'plan' ? renderPlan() : tab === 'strava' ? renderStrava() : tab === 'doplnky' ? renderDoplnky() : tab === 'pokrok' ? renderPokrok() : renderTrening();
+  if (tab === 'plan') setTimeout(() => window.dispatchEvent(new Event('scroll')), 0);
 }
 function rerender(){ const y = window.scrollY; render(); window.scrollTo(0, y); }
 
@@ -534,7 +550,7 @@ document.addEventListener('click', e => {
   }
   else if (a === 'saveweight'){ const v = num($('#wkg').value); if (v < 30 || v > 250){ toast('Zadaj váhu v kg'); return; } S.weight[cur] = Math.round(v*10)/10; save(); rerender(); toast('Váha uložená'); }
   else if (a === 'delweight'){ delete S.weight[b.dataset.k]; save(); rerender(); }
-  else if (a === 'jump'){ const el = document.getElementById('p-' + b.dataset.f); if (el) el.scrollIntoView({behavior:'smooth'}); }
+  else if (a === 'jump'){ const el = document.getElementById('p-' + b.dataset.f); if (el) el.scrollIntoView({behavior:'smooth'}); setActiveChip(b.dataset.f); }
   else if (a === 'settings') openSettings();
   else if (a === 'close') $('#modal').classList.remove('show');
   else if (a === 'savegoals'){ ['kcal','kcalRun','p','f','c','water','start','target'].forEach(k => { const v = num($('#g_' + k).value); if (v > 0) S.goals[k] = v; }); save(); $('#modal').classList.remove('show'); rerender(); toast('Ciele uložené'); }
@@ -563,7 +579,7 @@ document.addEventListener('change', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('input.tgi, input.fx')) e.target.blur(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden && tEnd) tick(); });
 
-render();
+render(); setHH();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
