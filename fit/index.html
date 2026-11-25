@@ -144,7 +144,9 @@ input.f::placeholder{color:#5D6577;font-weight:500}
 .timer button{padding:9px 11px;border-radius:11px;background:rgba(255,255,255,.08);font-weight:700;font-size:14px}
 .modal{position:fixed;inset:0;z-index:40;background:rgba(5,6,10,.7);display:none;align-items:flex-end;justify-content:center}
 .modal.show{display:flex}
-.sheet{background:var(--bg);border:1px solid var(--line);border-radius:22px 22px 0 0;width:100%;max-width:640px;max-height:88vh;overflow:auto;padding:18px 16px calc(24px + env(safe-area-inset-bottom))}
+.modal{overscroll-behavior:contain}
+body.lock{position:fixed;left:0;right:0;overflow:hidden}
+.sheet{background:var(--bg);border:1px solid var(--line);border-radius:22px 22px 0 0;width:100%;max-width:640px;max-height:88vh;max-height:88dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:18px 16px calc(24px + env(safe-area-inset-bottom))}
 .sheet .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .sheet h2{margin:0}
 .empty{text-align:center;color:var(--m);padding:18px 6px;font-size:14px}
@@ -464,14 +466,16 @@ function renderStrava(){
 
 /* ---------- Skener čiarových kódov ---------- */
 let camStream = null, zx = null, detLoop = 0, scanning = false;
-function closeModal(){ stopCam(); $('#modal').classList.remove('show'); }
+let lockY = 0;
+function openModal(){ if (!$('#modal').classList.contains('show')){ lockY = window.scrollY; document.body.style.top = -lockY + 'px'; document.body.classList.add('lock'); } $('#modal').classList.add('show'); $('#sheet').scrollTop = 0; }
+function closeModal(){ stopCam(); if ($('#modal').classList.contains('show')){ $('#modal').classList.remove('show'); document.body.classList.remove('lock'); document.body.style.top = ''; window.scrollTo(0, lockY); } }
 function loadScript(src){ return new Promise((ok, bad) => { if (document.querySelector('script[src="' + src + '"]')) return ok(); const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = bad; document.head.appendChild(el); }); }
 function openScan(){
   $('#sheet').innerHTML = `<div class="top"><h2>Čiarový kód</h2><button class="x" data-act="close" aria-label="Zavrieť">${ICON.x}</button></div>
   <div class="vid"><video id="sv" playsinline muted autoplay></video><div class="aim"></div><div class="msg" id="smsg">Zapínam kameru…</div></div>
   <div class="row"><input class="f" style="flex:2;text-align:left" id="scode" inputmode="numeric" placeholder="alebo zadaj kód ručne"><button class="btn sm" style="flex:1" data-act="lookup">Hľadať</button></div>
   <div id="sres" class="res" style="margin-top:12px"></div>`;
-  $('#modal').classList.add('show');
+  openModal();
   startCam();
 }
 async function startCam(){
@@ -628,7 +632,7 @@ function openSettings(){
   <div class="g2"><button class="btn sec" data-act="export">Stiahnuť zálohu</button><label class="btn sec" style="cursor:pointer">Obnoviť zálohu<input type="file" id="imp" accept="application/json,.json" style="display:none"></label></div>
   <h3>Ako si ju dať na plochu</h3><p class="muted small" style="line-height:1.55;margin-top:0"><b style="color:var(--t)">iPhone:</b> otvor v Safari, ťukni na Zdieľať a vyber „Pridať na plochu“.<br><b style="color:var(--t)">Android:</b> v Chrome ťukni na tri bodky a vyber „Pridať na plochu“.</p>
   <button class="btn sec" style="margin-top:14px;color:var(--bad)" data-act="reset">Vymazať všetky dáta</button>`;
-  $('#modal').classList.add('show');
+  openModal();
 }
 
 /* ---------- Časovač ---------- */
@@ -743,7 +747,7 @@ document.addEventListener('click', e => {
     const blob = new Blob([JSON.stringify(S, null, 1)], {type:'application/json'});
     const u = URL.createObjectURL(blob); const l = document.createElement('a'); l.href = u; l.download = 'zenkodmyfit-zaloha-' + todayKey() + '.json'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 2000);
   }
-  else if (a === 'reset'){ if (confirm('Naozaj vymazať všetky tréningy, jedlá, doplnky a váhu?')){ S = fresh(); save(); $('#modal').classList.remove('show'); rerender(); toast('Vymazané'); } }
+  else if (a === 'reset'){ if (confirm('Naozaj vymazať všetky tréningy, jedlá, doplnky a váhu?')){ S = fresh(); save(); closeModal(); rerender(); toast('Vymazané'); } }
 });
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 document.addEventListener('input', e => {
@@ -758,7 +762,7 @@ document.addEventListener('change', e => {
   if (e.target.id === 'portion') portion = num(e.target.value) || 1;
   if (e.target.id === 'imp' && e.target.files[0]){
     const r = new FileReader();
-    r.onload = () => { try { const d = JSON.parse(r.result); if (!d || !d.goals) throw 0; S = Object.assign(fresh(), d); save(); $('#modal').classList.remove('show'); rerender(); toast('Záloha obnovená'); } catch(err){ toast('Toto nie je platná záloha'); } };
+    r.onload = () => { try { const d = JSON.parse(r.result); if (!d || !d.goals) throw 0; S = Object.assign(fresh(), d); save(); closeModal(); rerender(); toast('Záloha obnovená'); } catch(err){ toast('Toto nie je platná záloha'); } };
     r.readAsText(e.target.files[0]);
   }
 });
