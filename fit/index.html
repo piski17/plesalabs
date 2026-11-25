@@ -68,6 +68,7 @@ h3{font-size:15px;margin:18px 0 8px;color:var(--m);font-weight:600;text-transfor
 .set .u{color:var(--m);font-size:12.5px}
 input.f{width:100%;min-width:0;background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:10px 10px;font-size:16px;font-weight:600;text-align:center;outline:none}
 select.f{-webkit-appearance:none;appearance:none;background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:10px;font-size:16px;font-weight:600;text-align:center;text-align-last:center;outline:none}
+input.fx{text-align:left;margin-top:6px;padding:12px}
 input.f:focus{border-color:var(--v)}
 input.f::placeholder{color:#5D6577;font-weight:500}
 .okb{width:44px;height:42px;border-radius:11px;background:var(--card2);border:1px solid var(--line);display:grid;place-items:center}
@@ -274,13 +275,13 @@ function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add(
 /* ---------- Tréning ---------- */
 function workoutFor(k){ const l = S.wk[k]; if (l && l.w) return l.w; return DAYMAP[parseKey(k).getDay()] || null; }
 function logFor(k, create){
-  if (!S.wk[k] && create) S.wk[k] = {w:workoutFor(k) || 'ua', done:false, s:{}, run:{}};
+  if (!S.wk[k] && create) S.wk[k] = {w:workoutFor(k) || 'ua', done:false, s:{}, t:{}, run:{}};
   return S.wk[k];
 }
 function lastFor(w, id, before){
-  const ks = Object.keys(S.wk).filter(k => k < before && S.wk[k].w === w && S.wk[k].s && S.wk[k].s[id] && S.wk[k].s[id].some(x => x.r || x.kg)).sort();
+  const ks = Object.keys(S.wk).filter(k => k < before && S.wk[k].w === w && S.wk[k].t && S.wk[k].t[id]).sort();
   if (!ks.length) return null;
-  const k = ks[ks.length-1]; return {k, s:S.wk[k].s[id]};
+  const k = ks[ks.length-1]; return {k, t:S.wk[k].t[id]};
 }
 function renderTrening(){
   const w = workoutFor(cur);
@@ -289,46 +290,25 @@ function renderTrening(){
   let h = '<div class="chips">' + ORDER.map(id => `<button class="chip ${w===id?'on':''}" data-act="pickw" data-w="${id}">${PLAN[id].n}</button>`).join('') + '</div>';
   if (!w){
     h += `<div class="card"><b style="font-size:20px">${dow===0||dow===6?'Víkend, voľno':'Voľný deň'}</b><p class="muted" style="margin:6px 0 0;line-height:1.5">Oddychuj a regeneruj. Ak chceš cvičiť aj tak, vyber si tréning hore.</p></div>`;
-    return h + renderHistory();
+    return h;
   }
   const P = PLAN[w];
-  h += `<div class="wtitle"><b class="grad">${P.n}</b>${log && log.done ? '<span class="pill ok">Hotovo</span>' : '<span class="pill">'+(P.run?'25–35 min':'~60 min')+'</span>'}</div><div class="muted small" style="margin-bottom:12px">${P.z}</div>`;
+  h += `<div class="wtitle"><b class="grad">${P.n}</b><span class="pill">${P.run?'25–35 min':'~60 min'}</span></div><div class="muted small" style="margin-bottom:12px">${P.z}</div>`;
   if (P.run){
-    const r = (log && log.run) || {};
-    h += `<div class="card"><div class="g2"><label class="fld"><span>Čas (min)</span><input inputmode="decimal" data-run="min" value="${esc(r.min)}" placeholder="30"></label><label class="fld"><span>Vzdialenosť (km)</span><input inputmode="decimal" data-run="km" value="${esc(r.km)}" placeholder="3,5"></label></div><label class="fld" style="margin:0"><span>Poznámka</span><input data-run="note" value="${esc(r.note)}" placeholder="napr. 1 min beh + 2 min chôdza"></label></div>`;
+    h += `<div class="ex"><div class="exh"><div><b>Beh s chôdzou</b><small>ľahké tempo</small></div><span class="tg">25–35 min</span></div><input class="f fx" data-t="beh_run" value="${esc((S.cur||{}).beh_run||'')}" placeholder="napr. 1 min beh + 2 min chôdza, 30 min"></div>`;
     h += `<div class="note">${P.pz}</div>`;
   } else {
-    h += '<div class="muted small" style="margin:0 0 10px">Najprv rozcvička 5–8 min. Posledné opakovanie ťažké, rezerva 1–2.</div>';
+    h += '<div class="muted small" style="margin:0 0 10px">Najprv rozcvička 5–8 min. Pri každom cviku máš zapísanú aktuálnu váhu a opakovania. Keď pridáš, len to prepíš.</div>';
     P.ex.forEach((e, i) => h += exCard(w, 'e'+i, i+1, e[0], e[1], e[2], e[3], log, false));
     h += '<h3>Core na konci · 10 min</h3>';
     P.core.forEach((e, i) => h += exCard(w, 'c'+i, i+1, e[0], '', e[1], e[2], log, true));
     if (P.pz) h += `<div class="note">${P.pz}</div>`;
-    let tot = 0, dn = 0;
-    [...P.ex.map((e,i)=>['e'+i,e[2]]), ...P.core.map((e,i)=>['c'+i,e[1]])].forEach(([id,s]) => { tot += sets(s); dn += ((log && log.s[id]) || []).filter(x => x.ok).length; });
-    h += `<div class="card"><div class="row" style="justify-content:space-between"><span class="small muted" style="flex:none">Hotové série</span><b style="flex:none">${dn} / ${tot}</b></div><div class="bar" style="margin-top:8px"><i style="width:${tot?dn/tot*100:0}%"></i></div></div>`;
   }
-  h += log && log.done ? '<button class="btn ok" data-act="done">Tréning hotový · zrušiť</button>' : '<button class="btn" data-act="done">Označiť tréning ako hotový</button>';
-  return h + renderHistory();
+  return h;
 }
 function exCard(w, id, n, name, eq, target, rest, log, isCore){
-  const cnt = sets(target);
-  const cs = (log && log.s[id]) || [];
-  const last = lastFor(w, id, cur);
-  let meta = `Pauza ${rest}`;
-  if (last){
-    meta += ' · Minule (' + kShort(last.k) + '): ' + last.s.filter(x => x.r || x.kg).map(x => isCore ? esc(x.r) : (x.kg ? esc(x.kg)+'×' : '') + esc(x.r)).join(', ');
-    const top = topRange(target);
-    if (!isCore && top && last.s.length >= cnt && last.s.slice(0,cnt).every(x => num(x.r) >= top)) meta += '<br><span class="up">Minule si dal hornú hranicu vo všetkých sériách. Pridaj váhu.</span>';
-  }
-  const all = cs.filter(x => x.ok).length >= cnt;
-  let h = `<div class="ex ${isCore?'core':''} ${all?'alldone':''}"><div class="exh"><div><b>${n}. ${esc(name)}</b>${eq?`<small>${esc(eq)}</small>`:''}</div><span class="tg">${esc(target)}</span></div><div class="meta">${meta}</div>`;
-  for (let i = 0; i < cnt; i++){
-    const s = cs[i] || {}; const L = last && last.s[i] || {};
-    h += isCore
-      ? `<div class="set c"><span class="n">${i+1}</span><input class="f" inputmode="decimal" data-id="${id}" data-i="${i}" data-k="r" value="${esc(s.r)}" placeholder="${esc(L.r||'')}"><span class="u">${/\d\s*s\b/.test(target)?'s':'opak.'}</span><button class="okb ${s.ok?'on':''}" data-act="ok" data-id="${id}" data-i="${i}" data-rest="${restSec(rest)}" aria-label="Séria hotová">${ICON.ok}</button></div>`
-      : `<div class="set"><span class="n">${i+1}</span><input class="f" inputmode="decimal" data-id="${id}" data-i="${i}" data-k="kg" value="${esc(s.kg)}" placeholder="${esc(L.kg||'kg')}"><span class="u">kg</span><input class="f" inputmode="numeric" data-id="${id}" data-i="${i}" data-k="r" value="${esc(s.r)}" placeholder="${esc(L.r||'opak.')}"><span class="u">×</span><button class="okb ${s.ok?'on':''}" data-act="ok" data-id="${id}" data-i="${i}" data-rest="${restSec(rest)}" aria-label="Séria hotová">${ICON.ok}</button></div>`;
-  }
-  return h + '</div>';
+  const v = (S.cur || {})[w + '_' + id] || '';
+  return `<div class="ex ${isCore?'core':''}"><div class="exh"><div><b>${n}. ${esc(name)}</b><small>${eq?esc(eq)+' · ':''}pauza ${esc(rest)}</small></div><span class="tg">${esc(target)}</span></div><input class="f fx" data-t="${w}_${id}" value="${esc(v)}" placeholder="${isCore?'napr. 45 s':'napr. 40 kg × 8'}"></div>`;
 }
 function renderHistory(){
   const ks = Object.keys(S.wk).filter(k => S.wk[k].done).sort().reverse().slice(0, 8);
@@ -337,7 +317,7 @@ function renderHistory(){
     const l = S.wk[k]; const P = PLAN[l.w];
     let d = '';
     if (P.run) d = [l.run.min && fmt(num(l.run.min),1)+' min', l.run.km && fmt(num(l.run.km),2)+' km'].filter(Boolean).join(' · ');
-    else { let n = 0, vol = 0; Object.values(l.s||{}).forEach(a => a.forEach(x => { if (x.ok) { n++; vol += num(x.kg)*num(x.r); } })); d = n + ' sérií' + (vol ? ' · ' + fmt(vol) + ' kg celkom' : ''); }
+    else d = Object.values(l.t||{}).filter(Boolean).length + ' cvikov zapísaných';
     return `<button class="it" style="width:100%;text-align:left" data-act="goto" data-k="${k}"><div class="tx"><b>${P.n}</b><small>${DNI[parseKey(k).getDay()]} ${kShort(k)} · ${d}</small></div></button>`;
   }).join('') + '</div>';
 }
@@ -407,9 +387,6 @@ function renderPokrok(){
     h += `<div class="note"><b>Odporúčanie:</b> ${adv}</div>`;
   } else h += '<div class="note">Po 2 týždňoch váženia ti tu ukážem, či máš pridať alebo ubrať kalórie.</div>';
   h += '<h3>Graf váhy</h3><div class="card chart">' + chart() + '</div>';
-  const mon = addDays(cur, -((parseKey(cur).getDay() + 6) % 7));
-  let wdone = 0; for (let i = 0; i < 7; i++){ const l = S.wk[addDays(mon, i)]; if (l && l.done) wdone++; }
-  h += `<h3>Tento týždeň</h3><div class="card"><div class="row" style="justify-content:space-between"><span style="flex:none">Tréningy</span><b style="flex:none">${wdone} / 5</b></div><div class="bar" style="margin-top:8px"><i style="width:${Math.min(100, wdone/5*100)}%"></i></div></div>`;
   const ks = Object.keys(S.weight).sort().reverse().slice(0, 10);
   if (ks.length) h += '<h3>Záznamy</h3><div class="card list">' + ks.map(k => `<div class="it"><div class="tx"><b>${fmt(S.weight[k],1)} kg</b><small>${DNI[parseKey(k).getDay()]} ${kShort(k)}</small></div><button class="x" data-act="delweight" data-k="${k}" aria-label="Zmazať">${ICON.x}</button></div>`).join('') + '</div>';
   return h;
@@ -538,7 +515,7 @@ document.addEventListener('click', e => {
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') $('#modal').classList.remove('show'); });
 document.addEventListener('input', e => {
   const t = e.target;
-  if (t.dataset.id && t.dataset.k){ const l = logFor(cur, true); const a = l.s[t.dataset.id] = l.s[t.dataset.id] || []; const s = a[+t.dataset.i] = a[+t.dataset.i] || {}; s[t.dataset.k] = t.value.trim(); save(); }
+  if (t.dataset.t){ S.cur = S.cur || {}; S.cur[t.dataset.t] = t.value.trim(); save(); }
   else if (t.dataset.run){ const l = logFor(cur, true); l.run = l.run || {}; l.run[t.dataset.run] = t.value.trim(); save(); }
   else if (t.id === 'fq'){ foodQ = t.value; const y = window.scrollY; render(); const f = $('#fq'); f.focus(); f.setSelectionRange(f.value.length, f.value.length); window.scrollTo(0, y); }
 });
