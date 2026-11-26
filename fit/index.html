@@ -62,7 +62,7 @@ h3{font-size:15px;margin:18px 0 8px;color:var(--m);font-weight:600;text-transfor
 .exh small{display:block;color:var(--m);font-size:12.5px;margin-top:2px}
 .exr{display:flex;gap:6px;align-items:flex-start;flex:none}.exr .tgi{flex:none;max-width:none}.exh>div:first-child{flex:1}
 .phbox{position:relative;border-radius:16px;overflow:hidden;margin:0 0 12px;aspect-ratio:3/2;background:var(--card2)}.phbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.phbox .ph2{animation:phx 2.6s ease-in-out infinite}@keyframes phx{0%,30%{opacity:0}50%,80%{opacity:1}100%{opacity:0}}.phl{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;font-weight:700;padding:4px 9px;border-radius:99px}
-.animbox{background:radial-gradient(circle at 50% 40%,rgba(124,92,255,.14),transparent 70%),var(--card2);border:1px solid var(--line);border-radius:16px;margin:0 auto 12px;aspect-ratio:240/230;max-height:320px;display:flex;justify-content:center}.animbox svg{height:100%;width:auto;max-width:100%}
+.animbox{background:radial-gradient(circle at 50% 40%,rgba(124,92,255,.14),transparent 70%),var(--card2);border:1px solid var(--line);border-radius:16px;margin:0 auto 12px;aspect-ratio:240/230;max-height:230px;display:flex;justify-content:center}.animbox svg{height:100%;width:auto;max-width:100%}
 .infob{font-size:15px;color:var(--m)}
 .gq{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 12px}.gq .chip{cursor:pointer}
 .gsum{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;font-size:14px;color:var(--m);line-height:1.6}
@@ -818,12 +818,12 @@ function openHow(name){
   const H = HOW[name]; if (!H) return;
   const yt = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(name + ' technika');
   $('#sheet').innerHTML = `<div class="top"><h2 style="font-size:20px">${esc(name)}</h2><button class="x" data-act="close" aria-label="Zavrieť">${ICON.x}</button></div>
-  ${PHOTO[name] ? `<div class="phbox"><img src="cviky/${PHOTO[name]}_0.jpg" alt="Začiatok pohybu"><img class="ph2" src="cviky/${PHOTO[name]}_1.jpg" alt="Koniec pohybu"></div><div class="muted" style="font-size:11px;margin:-6px 0 10px;text-align:right">Foto: Free Exercise DB, voľné dielo</div>` : ANX[name] ? '<div id="animbox" class="animbox"></div>' : ''}
+  ${PHOTO[name] ? `<div class="phbox"><img src="cviky/${PHOTO[name]}_0.jpg" alt="Začiatok pohybu"><img class="ph2" src="cviky/${PHOTO[name]}_1.jpg" alt="Koniec pohybu"></div><div class="muted" style="font-size:11px;margin:-6px 0 10px;text-align:right">Foto: Free Exercise DB, voľné dielo</div>` : ''}${ANX[name] ? `${PHOTO[name] ? '<div class="muted small" style="margin:0 0 6px">Celý pohyb plynule:</div>' : ''}<div id="animbox" class="animbox"></div>` : ''}
   <div class="muted small" style="margin:-4px 0 14px">Zapojené svaly: <b style="color:var(--t)">${esc(H.m)}</b></div>
   <h3 style="margin-top:0">Ako na to</h3><ol class="howl">${H.s.map(x => `<li>${esc(x)}</li>`).join('')}</ol>
   <h3>Na čo si dať pozor</h3><ul class="howp">${H.p.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
   <a class="btn" href="${yt}" target="_blank" rel="noopener" style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Pozrieť video, ako sa cvik robí</a>`;
-  openModal(); if (!PHOTO[name]) startAnim(ANX[name]);
+  openModal(); startAnim(ANX[name]);
 }
 
 /* ---------- Doplnky ---------- */
