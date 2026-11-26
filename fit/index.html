@@ -61,6 +61,7 @@ h3{font-size:15px;margin:18px 0 8px;color:var(--m);font-weight:600;text-transfor
 .exh b{font-size:16px;line-height:1.3}
 .exh small{display:block;color:var(--m);font-size:12.5px;margin-top:2px}
 .exr{display:flex;gap:6px;align-items:flex-start;flex:none}.exr .tgi{flex:none;max-width:none}.exh>div:first-child{flex:1}
+.animbox{background:radial-gradient(circle at 50% 40%,rgba(124,92,255,.14),transparent 70%),var(--card2);border:1px solid var(--line);border-radius:16px;margin:0 auto 12px;aspect-ratio:240/230;max-height:320px;display:flex;justify-content:center}.animbox svg{height:100%;width:auto;max-width:100%}
 .infob{font-size:15px;color:var(--m)}
 .gq{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 12px}.gq .chip{cursor:pointer}
 .gsum{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;font-size:14px;color:var(--m);line-height:1.6}
@@ -466,9 +467,9 @@ function renderStrava(){
   h += '<h2>Dnes som zjedol</h2><div class="card list">';
   h += list.length ? list.map((x, i) => `<div class="it"><div class="tx"><b>${esc(x.n)}</b><small>${fmt(x.kcal)} kcal · B ${fmt(x.p)} · T ${fmt(x.f)} · S ${fmt(x.c)}${x.v?' · Vl '+fmt(x.v):''}</small></div><button class="x" data-act="delfood" data-i="${i}" aria-label="Zmazať">${ICON.x}</button></div>`).join('') : '<div class="empty">Zatiaľ nič. Pridaj jedlo nižšie.</div>';
   h += '</div>';
-  const q = foodQ.trim().toLowerCase();
-  const fl = S.foods.filter(f => !q || f.n.toLowerCase().includes(q));
-  const dl = q ? DB.map((d, i) => [d, i]).filter(([d]) => d[0].toLowerCase().includes(q) && !S.foods.some(f => (f.base || f.n).toLowerCase() === d[0].toLowerCase())) : [];
+  const q = norm(foodQ.trim());
+  const fl = S.foods.filter(f => !q || norm(f.n).includes(q));
+  const dl = q ? DB.map((d, i) => [d, i]).filter(([d]) => norm(d[0]).includes(q) && !S.foods.some(f => norm(f.base || f.n) === norm(d[0]))) : [];
   h += `<h2>Pridať jedlo</h2><input class="f" style="text-align:left;width:100%;margin-bottom:6px" id="fq" placeholder="Hľadať, napr. banán, ryža, kuracie…" value="${esc(foodQ)}"><div class="muted small" style="margin:0 0 10px">Ťukni na + a zadaj, koľko gramov si zjedol. Živiny sa prepočítajú samé.</div>`;
   h += '<div class="card list" id="flist">' + (fl.length ? fl.map(f => { const fp = foodPer(f); return `<div class="it"><div class="tx"><b>${esc(fp ? fp.base : f.n)}</b><small>${fp ? `na 100 ${fp.u}: ${fmt(fp.per.kcal)} kcal · B ${fmt(fp.per.p,1)} · T ${fmt(fp.per.f,1)} · S ${fmt(fp.per.c,1)}` : `${fmt(f.kcal)} kcal · B ${fmt(f.p)} · T ${fmt(f.f)} · S ${fmt(f.c)}`}</small></div>${editFoods ? `<button class="x" data-act="delsaved" data-id="${f.id}" aria-label="Odstrániť z mojich jedál">${ICON.x}</button>` : `<button class="add" data-act="addsaved" data-id="${f.id}" aria-label="Pridať">${ICON.plus}</button>`}</div>`; }).join('') : (dl.length ? '' : '<div class="empty">Nič sa nenašlo. Pridaj ho ako nové jedlo nižšie.</div>')) + '</div>';
   if (dl.length) h += '<h3>Z databázy potravín</h3><div class="card list">' + dl.slice(0, 12).map(([d, i]) => `<div class="it"><div class="tx"><b>${esc(d[0])}</b><small>na 100 ${d[0].startsWith('Mlieko') ? 'ml' : 'g'}: ${fmt(d[1])} kcal · B ${fmt(d[2],1)} · T ${fmt(d[3],1)} · S ${fmt(d[4],1)}</small></div><button class="add" data-act="adddb" data-i="${i}" aria-label="Pridať">${ICON.plus}</button></div>`).join('') + '</div>';
@@ -620,6 +621,7 @@ const DB = [
   ['Maslo',740,0.7,82,0.7,0],['Olivový olej',884,0,100,0,0],['Arašidové maslo',600,25,50,14,6,15],['Mandle',580,21,50,22,12],['Vlašské orechy',654,15,65,14,7],['Kešu',553,18,44,30,3],['Proteín srvátkový',400,80,6,7,0,30],['Med',304,0.3,0,82,0],['Horká čokoláda 70 %',600,8,43,46,11],
   ['Fazuľa varená',127,8.7,0.5,23,6],['Šošovica varená',116,9,0.4,20,8],['Cícer varený',164,8.9,2.6,27,7.6],['Hummus',166,8,10,14,6],['Pizza',266,11,10,33,2],['Hranolky',312,3.4,15,41,3.8]
 ];
+const norm = x => String(x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const DEFG = {'Banán':120, 'Vajce 1 ks':60};
 // z uloženého jedla zistí hodnoty na 100 g a obvyklú hmotnosť (ak sa dá)
 function foodPer(f){
@@ -655,6 +657,114 @@ function addGrams(){
   if (saved) Object.assign(saved, {base:x.n, per:x.per, g:x.g, u, n:nm}, tot);
   else if ($('#r_save') && $('#r_save').checked && !S.foods.some(f => (f.base || f.n).toLowerCase() === x.n.toLowerCase())) S.foods.unshift(Object.assign({id:'d' + Date.now(), base:x.n, per:x.per, g:x.g, u, n:nm}, tot));
   save(); closeModal(); rerender(); toast('Pridané: ' + nm);
+}
+
+/* ---------- Animované ukážky cvikov ---------- */
+// uhly v stupňoch: 0 = hore, 90 = doprava (postava pozerá doprava), 180 = dole
+// smery: s = členok→koleno, t = koleno→bok, b = bok→rameno, u = rameno→lakeť, f = lakeť→zápästie; s2,t2,u2,f2 = vzdialenejšia noha/ruka
+const GY = 172, L = {s:42, t:44, b:54, u:30, f:28};
+const STAND = {s:0, t:0, b:0, u:180, f:180};
+const BACKBAR = {u:-150, f:30};
+const AN = {
+  sq: {an:'feet', at:[100, GY], eq:'back', a:Object.assign({}, STAND, BACKBAR), b:Object.assign({s:32, t:-98, b:42}, BACKBAR)},
+  fsq:{an:'feet', at:[100, GY], eq:'hand', a:{s:0, t:0, b:0, u:95, f:-80}, b:{s:30, t:-100, b:18, u:85, f:-85}},
+  rdl:{an:'feet', at:[100, GY], eq:'hand', a:STAND, b:{s:10, t:-22, b:78, u:180, f:180}},
+  rdlL:{an:'feet', at:[100, GY], eq:'hand', a:STAND, b:{s:8, t:-18, b:62, u:180, f:180}},
+  gm: {an:'feet', at:[100, GY], eq:'back', a:Object.assign({}, STAND, BACKBAR), b:Object.assign({s:10, t:-20, b:74}, BACKBAR)},
+  lunge:{an:'feet', at:[120, GY], eq:'back', a:Object.assign({}, STAND, BACKBAR, {t2:0, s2:0}), b:Object.assign({s:6, t:-84, b:4, t2:18, s2:86, f2:30, u2:-150}, BACKBAR)},
+  bulg:{an:'feet', at:[132, GY], eq:'hand1', bench:[22, GY-34, 50, 34], a:{s:4, t:-20, b:4, t2:30, s2:68, u:180, f:180}, b:{s:14, t:-80, b:12, t2:10, s2:78, u:180, f:180}},
+  calf:{an:'feet', at:[100, GY], eq:'back', a:Object.assign({}, STAND, BACKBAR), b:Object.assign({lift:9}, STAND, BACKBAR)},
+  calf1:{an:'feet', at:[100, GY], eq:'', a:{s:0, t:0, b:0, u:160, f:110, t2:0, s2:115}, b:{lift:9, s:0, t:0, b:0, u:160, f:110, t2:0, s2:115}},
+  step:{an:'feet', at:[124, GY-34], eq:'chest', bench:[96, GY-34, 60, 34], a:{s:24, t:-62, b:22, t2:6, s2:4, u:150, f:20}, b:{s:0, t:0, b:0, t2:-4, s2:-30, u:150, f:20}},
+  bench:{an:'hip', at:[148, GY-60], eq:'hand', bench:[56, GY-54, 104, 8], legs:1, a:{b:-90, t:-78, s:-6, u:0, f:0}, b:{b:-90, t:-78, s:-6, u:128, f:-12}},
+  skull:{an:'hip', at:[148, GY-60], eq:'hand', bench:[56, GY-54, 104, 8], legs:1, a:{b:-90, t:-78, s:-6, u:-15, f:-15}, b:{b:-90, t:-78, s:-6, u:-20, f:-140}},
+  ohp:{an:'feet', at:[100, GY], eq:'hand', a:{s:0, t:0, b:0, u:168, f:4}, b:{s:0, t:0, b:-3, u:0, f:0}},
+  ohps:{an:'hip', at:[96, GY-56], eq:'hand', bench:[70, GY-50, 40, 50], back:1, a:{b:-4, t:-88, s:0, u:168, f:4}, b:{b:-4, t:-88, s:0, u:0, f:0}},
+  row:{an:'feet', at:[100, GY], eq:'hand', a:{s:12, t:-24, b:72, u:180, f:180}, b:{s:12, t:-24, b:72, u:-25, f:175}},
+  curl:{an:'feet', at:[100, GY], eq:'hand', a:STAND, b:{s:0, t:0, b:0, u:172, f:22}},
+  lat:{an:'feet', at:[100, GY], eq:'plate', a:{s:0, t:0, b:0, u:178, f:178}, b:{s:0, t:0, b:0, u:92, f:96}},
+  pull:{an:'hands', at:[112, 2], pull:1, a:{u:0, f:0, b:-4, t:-6, s:70}, b:{u:162, f:-8, b:-8, t:-6, s:70}},
+  dip:{an:'hands', at:[112, 98], dips:1, a:{u:180, f:180, b:2, t:-2, s:55}, b:{u:-128, f:150, b:14, t:-2, s:55}},
+  dipc:{an:'hands', at:[112, 98], dips:1, a:{u:182, f:180, b:16, t:10, s:60}, b:{u:-118, f:150, b:34, t:14, s:60}},
+  kr:{an:'hands', at:[112, 2], pull:1, a:{u:0, f:0, b:0, t:2, s:0}, b:{u:0, f:0, b:-12, t:-100, s:-8}},
+  lr:{an:'hands', at:[112, 2], pull:1, a:{u:0, f:0, b:0, t:2, s:0}, b:{u:0, f:0, b:-14, t:-96, s:-96}},
+  plank:{an:'feet', at:[46, GY-4], foot:170, a:{s:76, t:76, b:76, u:180, f:90}, b:{s:77, t:77, b:77, u:180, f:90}},
+  splank:{an:'feet', at:[46, GY-4], foot:170, a:{s:76, t:76, b:76, u:180, f:90}, b:{s:80, t:92, b:60, u:180, f:90}},
+  tap:{an:'hands', at:[160, GY], foot:170, a:{u:180, f:180, b:72, t:72, s:72}, b:{u:180, f:180, b:72, t:72, s:72, u2:60, f2:-140}},
+  climb:{an:'hands', at:[160, GY], foot:170, a:{u:180, f:180, b:72, t:-40, s:30, t2:72, s2:72}, b:{u:180, f:180, b:72, t:72, s:72, t2:-40, s2:30}},
+  twist:{an:'hip', at:[96, GY-6], eq:'plate', a:{b:-38, t:-128, s:-50, u:110, f:70}, b:{b:-38, t:-128, s:-50, u:170, f:120}},
+  deadbug:{an:'hip', at:[96, GY-10], legs:1, a:{b:-90, t:180, s:-90, u:0, f:0}, b:{b:-90, t:-96, s:-94, u:0, f:0, u2:-88, f2:-88, t2:180, s2:-90}},
+  hollow:{an:'hip', at:[104, GY-8], a:{b:-76, t:-102, s:-102, u:-86, f:-86}, b:{b:-74, t:-104, s:-104, u:-84, f:-84}},
+  sup:{an:'hip', at:[104, GY-8], prone:1, a:{b:90, t:90, s:90, u:90, f:90}, b:{b:80, t:98, s:98, u:72, f:72}},
+  roll:{an:'knee', at:[78, GY-4], eq:'ground', foot:180, a:{s:-90, t:24, b:44, u:162, f:162}, b:{s:-90, t:64, b:80, u:100, f:100}},
+  thrust:{an:'feet', at:[156, GY], eq:'hip', bench:[42, GY-40, 34, 40], a:{s:-6, t:-122, b:-62, u:150, f:140}, b:{s:0, t:-90, b:-96, u:150, f:140}},
+  run:{an:'hip', at:[110, GY-84], run:1, a:{b:8, t:-28, s:24, t2:26, s2:-70, u:205, f:120, u2:150, f2:60}, b:{b:8, t:26, s:-70, t2:-28, s2:24, u:150, f:60, u2:205, f2:120}}
+};
+const ANX = {
+  'Bench press (tlak na lavičke)':'bench', 'Zhyby nadhmatom':'pull', 'Tlak nad hlavu v stoji':'ohp', 'Prítah tyče v predklone':'row', 'Dipy':'dip', 'Bicepsový zdvih s tyčou':'curl',
+  'Plank':'plank', 'Prítahy kolien vo vise':'kr', 'Russian twist s kotúčom 5 kg':'twist',
+  'Drep s tyčou':'sq', 'Výpady vzad s tyčou na chrbte':'lunge', 'Bulharský drep (noha na lavičke)':'bulg', 'Výpony na lýtka s tyčou':'calf', 'Predný drep s tyčou':'fsq', 'Rumunský mŕtvy ťah (ľahší)':'rdlL',
+  'Zdvihy nôh vo vise':'lr', 'Bočný plank':'plank', 'Dead bug':'deadbug',
+  'Bench press úzkym úchopom':'bench', 'Zhyby podhmatom':'pull', 'Tlak nad hlavu v sede':'ohps', 'Prítah tyče v predklone podhmatom':'row', 'Dipy s predklonom (na hrudník)':'dipc', 'Francúzsky tlak s tyčou v ľahu':'skull', 'Upažovanie s kotúčmi 5 kg':'lat',
+  'Ab rollout s tyčou (z kolien)':'roll', 'Plank s ťuknutím do ramena':'tap', 'Superman':'sup',
+  'Rumunský mŕtvy ťah':'rdl', 'Drep s pauzou dole (2 s)':'sq', 'Hip thrust (chrbát o lavičku)':'thrust', 'Step-up na lavičku':'step', 'Výpony na lýtka na jednej nohe':'calf1', 'Good morning s tyčou':'gm',
+  'Hollow hold':'hollow', 'Bočný plank s dvíhaním boku':'splank', 'Horolezec':'climb', 'Beh s chôdzou':'run'
+};
+function vec(a, l){ const r = a * Math.PI / 180; return [Math.sin(r) * l, -Math.cos(r) * l]; }
+const add = (p, v, k = 1) => [p[0] + v[0] * k, p[1] + v[1] * k];
+function animPose(A, k){
+  const a = A.a, b = A.b, o = {};
+  const keys = new Set(Object.keys(a).concat(Object.keys(b)));
+  keys.forEach(x => { const va = a[x] !== undefined ? a[x] : dflt(a, x), vb = b[x] !== undefined ? b[x] : dflt(b, x); o[x] = va + (vb - va) * k; });
+  return o;
+}
+function dflt(p, x){ if (x === 'lift') return 0; if (x.endsWith('2')) return p[x[0]] !== undefined ? p[x[0]] : 0; return 0; }
+function skel(A, P){
+  const g = x => P[x] !== undefined ? P[x] : P[x[0]];
+  let ank, kn, hip, sh, el, wr;
+  if (A.an === 'feet'){ ank = [A.at[0], A.at[1] - 3 - (P.lift || 0)]; kn = add(ank, vec(P.s, L.s)); hip = add(kn, vec(P.t, L.t)); sh = add(hip, vec(P.b, L.b)); el = add(sh, vec(P.u, L.u)); wr = add(el, vec(P.f, L.f)); }
+  else if (A.an === 'hands'){ wr = A.at.slice(); el = add(wr, vec(P.f, L.f), -1); sh = add(el, vec(P.u, L.u), -1); hip = add(sh, vec(P.b, L.b), -1); kn = add(hip, vec(P.t, L.t), -1); ank = add(kn, vec(P.s, L.s), -1); }
+  else if (A.an === 'knee'){ kn = A.at.slice(); ank = add(kn, vec(P.s, L.s), -1); hip = add(kn, vec(P.t, L.t)); sh = add(hip, vec(P.b, L.b)); el = add(sh, vec(P.u, L.u)); wr = add(el, vec(P.f, L.f)); }
+  else { hip = A.at.slice(); kn = add(hip, vec(P.t, L.t), -1); ank = add(kn, vec(P.s, L.s), -1); sh = add(hip, vec(P.b, L.b)); el = add(sh, vec(P.u, L.u)); wr = add(el, vec(P.f, L.f)); }
+  if (A.an === 'hands' || A.an === 'hip' || A.an === 'knee'){ el = el || add(sh, vec(P.u, L.u)); }
+  const kn2 = add(hip, vec(g('t2'), L.t), -1), ank2 = add(kn2, vec(g('s2'), L.s), -1);
+  const el2 = add(sh, vec(g('u2'), L.u)), wr2 = add(el2, vec(g('f2'), L.f));
+  const hd = add(sh, vec(P.b + (A.prone ? -10 : 0), 15));
+  return {ank, kn, hip, sh, el, wr, kn2, ank2, el2, wr2, hd};
+}
+function animSVG(key, k){
+  const A = AN[key]; if (!A) return '';
+  const P = animPose(A, k), J = skel(A, P);
+  const ln = (p, q, c, w) => `<line x1="${p[0].toFixed(1)}" y1="${p[1].toFixed(1)}" x2="${q[0].toFixed(1)}" y2="${q[1].toFixed(1)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+  const fa = A.foot !== undefined ? A.foot : 90;
+  const foot = (an, s) => { if (A.an === 'feet' && an === J.ank && (P.lift || 0) > 0) return ln(an, [an[0] + 12, GY - 3], s, 9); return ln(an, add(an, vec(fa, 13)), s, 9); };
+  const far = '#5b6276', near = 'url(#ag)', bar = '#c9cfdd';
+  let h = A.pull ? '' : `<line x1="0" y1="${GY}" x2="240" y2="${GY}" stroke="#2a3042" stroke-width="2"/>`;
+  if (A.bench){ const [x, y, w, hh] = A.bench; h += `<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="3" fill="#232838"/>`; if (A.back) h += `<rect x="${x - 6}" y="${y - 70}" width="8" height="${70 + hh}" rx="3" fill="#232838"/>`; }
+  if (A.pull) h += `<line x1="20" y1="${A.at[1]}" x2="220" y2="${A.at[1]}" stroke="${bar}" stroke-width="5" stroke-linecap="round"/>`;
+  if (A.dips) h += `<line x1="70" y1="${A.at[1]}" x2="170" y2="${A.at[1]}" stroke="${bar}" stroke-width="6" stroke-linecap="round"/><line x1="160" y1="${A.at[1]}" x2="160" y2="${GY}" stroke="#3a4152" stroke-width="5"/>`;
+  // vzdialenejšie končatiny
+  h += ln(J.hip, J.kn2, far, 12) + ln(J.kn2, J.ank2, far, 10) + foot(J.ank2, far);
+  h += ln(J.sh, J.el2, far, 9) + ln(J.el2, J.wr2, far, 8);
+  // trup a hlava
+  h += ln(J.hip, J.sh, near, 17) + `<circle cx="${J.hd[0].toFixed(1)}" cy="${J.hd[1].toFixed(1)}" r="10" fill="url(#ag)"/>`;
+  h += ln(J.hip, J.kn, near, 13) + ln(J.kn, J.ank, near, 11) + foot(J.ank, '#8b7bff');
+  h += ln(J.sh, J.el, near, 10) + ln(J.el, J.wr, near, 9);
+  const plate = (p, r) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${r}" fill="#1b1f2b" stroke="${bar}" stroke-width="3"/><circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.5" fill="${bar}"/>`;
+  if (A.eq === 'hand' || A.eq === 'ground') h += plate(J.wr, 13);
+  if (A.eq === 'back') h += plate(add(J.sh, vec(P.b - 90, 3)), 13);
+  if (A.eq === 'hip') h += plate(add(J.hip, [4, -12]), 13);
+  if (A.eq === 'plate' || A.eq === 'chest') h += plate(J.wr, 8);
+  if (A.eq === 'hand1') h += plate(J.wr, 6);
+  return `<svg viewBox="0 -40 240 230" class="anim" role="img" aria-label="Animovaná ukážka cviku"><defs><linearGradient id="ag" gradientUnits="userSpaceOnUse" x1="40" y1="10" x2="200" y2="180"><stop offset="0" stop-color="#7C5CFF"/><stop offset="1" stop-color="#22D3EE"/></linearGradient></defs>${h}</svg>`;
+}
+let animRaf = 0;
+function startAnim(key){
+  cancelAnimationFrame(animRaf);
+  const box = $('#animbox'); if (!box || !AN[key]) return;
+  const t0 = performance.now(), per = key === 'run' ? 900 : 2600;
+  const step = t => { if (!document.body.contains(box)) return; const ph = ((t - t0) % per) / per; const k = key === 'run' ? (1 - Math.cos(ph * 2 * Math.PI)) / 2 : (1 - Math.cos(ph * 2 * Math.PI)) / 2; box.innerHTML = animSVG(key, k); animRaf = requestAnimationFrame(step); };
+  animRaf = requestAnimationFrame(step);
 }
 
 /* ---------- Ako cvičiť ---------- */
@@ -704,11 +814,12 @@ function openHow(name){
   const H = HOW[name]; if (!H) return;
   const yt = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(name + ' technika');
   $('#sheet').innerHTML = `<div class="top"><h2 style="font-size:20px">${esc(name)}</h2><button class="x" data-act="close" aria-label="Zavrieť">${ICON.x}</button></div>
+  ${ANX[name] ? '<div id="animbox" class="animbox"></div>' : ''}
   <div class="muted small" style="margin:-4px 0 14px">Zapojené svaly: <b style="color:var(--t)">${esc(H.m)}</b></div>
   <h3 style="margin-top:0">Ako na to</h3><ol class="howl">${H.s.map(x => `<li>${esc(x)}</li>`).join('')}</ol>
   <h3>Na čo si dať pozor</h3><ul class="howp">${H.p.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
   <a class="btn" href="${yt}" target="_blank" rel="noopener" style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Pozrieť video, ako sa cvik robí</a>`;
-  openModal();
+  openModal(); startAnim(ANX[name]);
 }
 
 /* ---------- Doplnky ---------- */
@@ -948,6 +1059,7 @@ document.addEventListener('click', e => {
   else if (a === 'delsaved'){ S.foods = S.foods.filter(x => x.id !== b.dataset.id); save(); rerender(); }
   else if (a === 'addnew'){
     const n = $('#nn').value.trim(); const k = num($('#nk').value);
+    if (n && !k){ const d = DB.find(x => norm(x[0]) === norm(n)) || DB.find(x => norm(x[0]).startsWith(norm(n))); if (d){ openGrams({base:d[0], per:{kcal:d[1], p:d[2], f:d[3], c:d[4], v:d[5]}, g:num($('#ng').value) || d[6] || '', u:d[0].startsWith('Mlieko') ? 'ml' : 'g'}); return; } }
     if (!n || !k){ toast('Zadaj aspoň názov a kcal'); return; }
     const item = {n, kcal:Math.round(k), p:Math.round(num($('#np').value)), f:Math.round(num($('#nf').value)), c:Math.round(num($('#nc').value)), v:Math.round(num($('#nv').value))};
     const ng = num($('#ng').value), k1 = ng ? 100 / ng : 0, r1 = x => Math.round(x * k1 * 10) / 10;
