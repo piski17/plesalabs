@@ -701,6 +701,7 @@ const AN = {
   thrust:{an:'feet', at:[156, GY], eq:'hip', bench:[42, GY-40, 34, 40], a:{s:-6, t:-122, b:-62, u:150, f:140}, b:{s:0, t:-90, b:-96, u:150, f:140}},
   run:{an:'hip', at:[110, GY-84], run:1, a:{b:8, t:-28, s:24, t2:26, s2:-70, u:205, f:120, u2:150, f2:60}, b:{b:8, t:26, s:-70, t2:-28, s2:24, u:150, f:60, u2:205, f2:120}}
 };
+const ANHL = {sq:'tg', fsq:'tg', rdl:'tgb', rdlL:'tgb', gm:'gb', lunge:'tg', bulg:'tg', calf:'s', calf1:'s', step:'tg', bench:'cud', skull:'u', ohp:'du', ohps:'du', row:'cu', curl:'u', lat:'d', pull:'cu', dip:'uc', dipc:'cu', kr:'b', lr:'bt', plank:'b', splank:'b', tap:'bd', climb:'bt', twist:'b', deadbug:'b', hollow:'b', sup:'gb', roll:'bd', thrust:'g', run:'ts'};
 const ANX = {
   'Bench press (tlak na lavičke)':'bench', 'Zhyby nadhmatom':'pull', 'Tlak nad hlavu v stoji':'ohp', 'Prítah tyče v predklone':'row', 'Dipy':'dip', 'Bicepsový zdvih s tyčou':'curl',
   'Plank':'plank', 'Prítahy kolien vo vise':'kr', 'Russian twist s kotúčom 5 kg':'twist',
@@ -739,31 +740,38 @@ function animSVG(key, k){
   const ln = (p, q, c, w) => `<line x1="${p[0].toFixed(1)}" y1="${p[1].toFixed(1)}" x2="${q[0].toFixed(1)}" y2="${q[1].toFixed(1)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
   const fa = A.foot !== undefined ? A.foot : 90;
   const foot = (an, s) => { if (A.an === 'feet' && an === J.ank && (P.lift || 0) > 0) return ln(an, [an[0] + 12, GY - 3], s, 9); return ln(an, add(an, vec(fa, 13)), s, 9); };
-  const far = '#5b6276', near = 'url(#ag)', bar = '#c9cfdd';
-  let h = A.pull ? '' : `<line x1="0" y1="${GY}" x2="240" y2="${GY}" stroke="#2a3042" stroke-width="2"/>`;
-  if (A.bench){ const [x, y, w, hh] = A.bench; h += `<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="3" fill="#232838"/>`; if (A.back) h += `<rect x="${x - 6}" y="${y - 70}" width="8" height="${70 + hh}" rx="3" fill="#232838"/>`; }
+  const bar = '#c9cfdd', HL = ANHL[key] || '';
+  // anatomický štýl: končatiny ako zúžené tvary, svaly, ktoré cvik zapája, sú zvýraznené
+  const limb = (p, q, w1, w2, fill) => { const dx = q[0] - p[0], dy = q[1] - p[1], d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d; const f = x => x.toFixed(1); return `<g fill="${fill}"><path d="M${f(p[0] + nx * w1)} ${f(p[1] + ny * w1)} L${f(q[0] + nx * w2)} ${f(q[1] + ny * w2)} L${f(q[0] - nx * w2)} ${f(q[1] - ny * w2)} L${f(p[0] - nx * w1)} ${f(p[1] - ny * w1)}Z"/><circle cx="${f(p[0])}" cy="${f(p[1])}" r="${w1}"/><circle cx="${f(q[0])}" cy="${f(q[1])}" r="${w2}"/></g>`; };
+  const col = (seg, farSide) => HL.includes(seg) ? (farSide ? '#b8424a' : 'url(#am)') : (farSide ? '#6c7284' : 'url(#ab)');
+  const foot2 = (an, c) => { if (A.an === 'feet' && an === J.ank && (P.lift || 0) > 0) return limb(an, [an[0] + 12, GY - 3], 4.5, 3, c); return limb(an, add(an, vec(fa, 12)), 4.5, 3, c); };
+  let h = A.pull ? '' : `<ellipse cx="120" cy="${GY + 2}" rx="100" ry="5" fill="rgba(0,0,0,.35)"/><line x1="0" y1="${GY}" x2="240" y2="${GY}" stroke="#2a3042" stroke-width="2"/>`;
+  if (A.bench){ const [x, y, w, hh] = A.bench; h += `<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="3" fill="#2a3042"/>`; if (A.back) h += `<rect x="${x - 6}" y="${y - 70}" width="8" height="${70 + hh}" rx="3" fill="#2a3042"/>`; }
   if (A.pull) h += `<line x1="20" y1="${A.at[1]}" x2="220" y2="${A.at[1]}" stroke="${bar}" stroke-width="5" stroke-linecap="round"/>`;
   if (A.dips) h += `<line x1="70" y1="${A.at[1]}" x2="170" y2="${A.at[1]}" stroke="${bar}" stroke-width="6" stroke-linecap="round"/><line x1="160" y1="${A.at[1]}" x2="160" y2="${GY}" stroke="#3a4152" stroke-width="5"/>`;
-  // vzdialenejšie končatiny
-  h += ln(J.hip, J.kn2, far, 12) + ln(J.kn2, J.ank2, far, 10) + foot(J.ank2, far);
-  h += ln(J.sh, J.el2, far, 9) + ln(J.el2, J.wr2, far, 8);
-  // trup a hlava
-  h += ln(J.hip, J.sh, near, 17) + `<circle cx="${J.hd[0].toFixed(1)}" cy="${J.hd[1].toFixed(1)}" r="10" fill="url(#ag)"/>`;
-  h += ln(J.hip, J.kn, near, 13) + ln(J.kn, J.ank, near, 11) + foot(J.ank, '#8b7bff');
-  h += ln(J.sh, J.el, near, 10) + ln(J.el, J.wr, near, 9);
+  if (A.eq === 'back'){ const c = add(J.sh, vec(P.b - 90, 3)); h += `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="14" fill="#1b1f2b" stroke="${bar}" stroke-width="3"/>`; }
+  // vzdialenejšia noha a ruka (tmavšie)
+  h += limb(J.hip, J.kn2, 9, 6.5, col('t', 1)) + limb(J.kn2, J.ank2, 6.5, 4, col('s', 1)) + foot2(J.ank2, '#6c7284');
+  h += limb(J.sh, J.el2, 5.8, 4.4, col('u', 1)) + limb(J.el2, J.wr2, 4.4, 3, '#6c7284');
+  // trup: boky užšie, hrudník širší
+  const tv = [J.sh[0] - J.hip[0], J.sh[1] - J.hip[1]], chest = add(J.hip, tv, .62);
+  h += limb(J.hip, chest, 10, 12.5, col('b')) + limb(chest, J.sh, 12.5, 9, col('c'));
+  h += limb(J.hip, J.kn, 9.5, 6.5, col('t')) + `<circle cx="${(J.hip[0] - tv[0] * .05).toFixed(1)}" cy="${(J.hip[1] - tv[1] * .05).toFixed(1)}" r="10" fill="${col('g')}"/>` + limb(J.kn, J.ank, 6.5, 4, col('s')) + foot2(J.ank, '#aab0bf');
+  const nk = add(J.sh, vec(P.b + (A.prone ? -10 : 0), 6));
+  h += limb(J.sh, nk, 4.5, 4.5, 'url(#ab)') + `<circle cx="${J.hd[0].toFixed(1)}" cy="${J.hd[1].toFixed(1)}" r="9.5" fill="url(#ah)"/>`;
+  h += limb(J.sh, J.el, 6.5, 4.8, col('u')) + limb(J.el, J.wr, 4.8, 3.2, col('f')) + `<circle cx="${J.sh[0].toFixed(1)}" cy="${J.sh[1].toFixed(1)}" r="7" fill="${col('d')}"/>`;
   const plate = (p, r) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${r}" fill="#1b1f2b" stroke="${bar}" stroke-width="3"/><circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.5" fill="${bar}"/>`;
   if (A.eq === 'hand' || A.eq === 'ground') h += plate(J.wr, 13);
-  if (A.eq === 'back') h += plate(add(J.sh, vec(P.b - 90, 3)), 13);
   if (A.eq === 'hip') h += plate(add(J.hip, [4, -12]), 13);
   if (A.eq === 'plate' || A.eq === 'chest') h += plate(J.wr, 8);
   if (A.eq === 'hand1') h += plate(J.wr, 6);
-  return `<svg viewBox="0 -40 240 230" class="anim" role="img" aria-label="Animovaná ukážka cviku"><defs><linearGradient id="ag" gradientUnits="userSpaceOnUse" x1="40" y1="10" x2="200" y2="180"><stop offset="0" stop-color="#7C5CFF"/><stop offset="1" stop-color="#22D3EE"/></linearGradient></defs>${h}</svg>`;
+  return `<svg viewBox="0 -40 240 230" class="anim" role="img" aria-label="Animovaná ukážka cviku"><defs><linearGradient id="ab" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef0f4"/><stop offset="1" stop-color="#a9afbd"/></linearGradient><linearGradient id="am" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8a7a"/><stop offset="1" stop-color="#e0354a"/></linearGradient><radialGradient id="ah" cx=".35" cy=".35" r=".8"><stop offset="0" stop-color="#f4f5f8"/><stop offset="1" stop-color="#9ea4b3"/></radialGradient></defs>${h}</svg>`;
 }
 let animRaf = 0;
 function startAnim(key){
   cancelAnimationFrame(animRaf);
   const box = $('#animbox'); if (!box || !AN[key]) return;
-  const t0 = performance.now(), per = key === 'run' ? 900 : 2600;
+  const t0 = performance.now(), per = key === 'run' ? 900 : 3000;
   const step = t => { if (!document.body.contains(box)) return; const ph = ((t - t0) % per) / per; const k = key === 'run' ? (1 - Math.cos(ph * 2 * Math.PI)) / 2 : (1 - Math.cos(ph * 2 * Math.PI)) / 2; box.innerHTML = animSVG(key, k); animRaf = requestAnimationFrame(step); };
   animRaf = requestAnimationFrame(step);
 }
