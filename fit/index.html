@@ -61,6 +61,11 @@ h3{font-size:15px;margin:18px 0 8px;color:var(--m);font-weight:600;text-transfor
 .exh b{font-size:16px;line-height:1.3}
 .exh small{display:block;color:var(--m);font-size:12.5px;margin-top:2px}
 .exr{display:flex;gap:6px;align-items:flex-start;flex:none}.exr .tgi{flex:none;max-width:none}.exh>div:first-child{flex:1}
+.infob{font-size:15px;color:var(--m)}
+.gq{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 12px}.gq .chip{cursor:pointer}
+.gsum{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;font-size:14px;color:var(--m);line-height:1.6}
+.gper{margin-bottom:12px}.gper summary{cursor:pointer;color:var(--m);font-size:13.5px;font-weight:600}
+.howl,.howp{margin:0 0 6px;padding-left:20px;line-height:1.55}.howl li,.howp li{margin-bottom:6px}.howp li::marker{color:var(--warn)}
 .colb{flex:none;width:30px;height:30px;border-radius:9px;border:1px solid var(--line);background:var(--card2);color:var(--t);font-size:19px;font-weight:700;line-height:1;display:grid;place-items:center;padding:0;cursor:pointer}
 .ex.min{padding-bottom:12px}.ex.min .fx,.ex.min .setrow,.ex.min .tgi{display:none}
 .okc{color:#34D399;font-weight:700}
@@ -383,7 +388,7 @@ function renderTrening(){
   const P = PLAN[w];
   h += `<div class="wtitle"><b class="grad">${P.n}</b><span class="pill">${P.run?'25–35 min':'~60 min'}</span></div><div class="muted small" style="margin-bottom:12px">${P.z}</div>`;
   if (P.run){
-    h += `<div class="ex"><div class="exh"><div><b>Beh s chôdzou</b><small>ľahké tempo</small></div><span class="tg">25–35 min</span></div><input class="f fx" data-t="beh_run" value="${esc((S.cur||{}).beh_run||'')}" placeholder="napr. 1 min beh + 2 min chôdza, 30 min"></div>`;
+    h += `<div class="ex"><div class="exh"><div><b>Beh s chôdzou</b><small>ľahké tempo</small></div><div class="exr"><button class="colb infob" data-act="howto" data-w="beh" data-id="run" aria-label="Ako na to">?</button><span class="tg">25–35 min</span></div></div><input class="f fx" data-t="beh_run" value="${esc((S.cur||{}).beh_run||'')}" placeholder="napr. 1 min beh + 2 min chôdza, 30 min"></div>`;
     h += `<div class="note">${P.pz}</div>`;
   } else {
     h += '<div class="muted small" style="margin:0 0 10px">Najprv rozcvička 5–8 min. Do políčka si zapíš váhu a opakovania, keď pridáš, len ich prepíš. Po každej sérii ťukni na tlačidlo a spustí sa pauza. Série a opakovania (napr. 4 × 5–8) si vieš prepísať ťuknutím.</div>';
@@ -402,7 +407,7 @@ function exCard(w, id, n, name, eq, target, rest, log, isCore){
   const st = fin ? '<span class="st fin">Cvik splnený</span>' : `<span class="st">${d ? 'Hotové ' + d + ' z ' + cnt : 'Séria 1 z ' + cnt}</span>`;
   const btn = fin ? '' : `<button class="setb" data-act="set" data-id="${id}" data-cnt="${cnt}" data-rest="${restSec(rest)}"${isCore?' data-core="1"':''}>${ICON.ok}${d ? (d+1) + '. séria' : '1. séria'}</button>`;
   const ck = cur + '|' + tk, mn = !!(S.col || {})[ck];
-  return `<div class="ex ${isCore?'core':''} ${fin?'alldone':''} ${mn?'min':''}"><div class="exh"><div style="min-width:0"><b>${n}. ${esc(name)}</b><small>${mn ? `<span class="${fin?'okc':''}">${fin?'✓ hotové':d+' / '+cnt+' sérií'}</span>${v?' · '+esc(v):''}` : `${eq?esc(eq)+' · ':''}pauza ${esc(rest)}`}</small></div><div class="exr"><input class="tg tgi" data-tg="${tk}" value="${esc(target)}" style="width:${Math.max(6, target.length) * 0.62 + 1.6}em" aria-label="Série a opakovania"><button class="colb" data-act="col" data-k="${ck}" aria-label="${mn?'Rozbaliť':'Zbaliť'}">${mn?'+':'−'}</button></div></div><input class="f fx" data-t="${w}_${id}" value="${esc(v)}" placeholder="${isCore?'napr. 45 s':'napr. 40 kg × 8'}"><div class="setrow">${dots}${st}${d?`<button class="undo" data-act="unset" data-id="${id}" aria-label="Vrátiť sériu">↺</button>`:''}${btn}</div></div>`;
+  return `<div class="ex ${isCore?'core':''} ${fin?'alldone':''} ${mn?'min':''}"><div class="exh"><div style="min-width:0"><b>${n}. ${esc(name)}</b><small>${mn ? `<span class="${fin?'okc':''}">${fin?'✓ hotové':d+' / '+cnt+' sérií'}</span>${v?' · '+esc(v):''}` : `${eq?esc(eq)+' · ':''}pauza ${esc(rest)}`}</small></div><div class="exr"><button class="colb infob" data-act="howto" data-w="${w}" data-id="${id}" aria-label="Ako cvičiť">?</button><input class="tg tgi" data-tg="${tk}" value="${esc(target)}" style="width:${Math.max(6, target.length) * 0.62 + 1.6}em" aria-label="Série a opakovania"><button class="colb" data-act="col" data-k="${ck}" aria-label="${mn?'Rozbaliť':'Zbaliť'}">${mn?'+':'−'}</button></div></div><input class="f fx" data-t="${w}_${id}" value="${esc(v)}" placeholder="${isCore?'napr. 45 s':'napr. 40 kg × 8'}"><div class="setrow">${dots}${st}${d?`<button class="undo" data-act="unset" data-id="${id}" aria-label="Vrátiť sériu">↺</button>`:''}${btn}</div></div>`;
 }
 function renderHistory(){
   const ks = Object.keys(S.wk).filter(k => S.wk[k].done).sort().reverse().slice(0, 8);
@@ -463,10 +468,12 @@ function renderStrava(){
   h += '</div>';
   const q = foodQ.trim().toLowerCase();
   const fl = S.foods.filter(f => !q || f.n.toLowerCase().includes(q));
-  h += `<h2>Pridať z mojich jedál</h2><div class="row" style="margin-bottom:10px"><input class="f" style="text-align:left;flex:2" id="fq" placeholder="Hľadať jedlo…" value="${esc(foodQ)}"><select class="f" id="portion" style="flex:1" aria-label="Porcie">${[0.5,1,1.5,2,3].map(p => `<option value="${p}" ${p==portion?'selected':''}>${fmt(p,1)}×</option>`).join('')}</select></div>`;
-  h += '<div class="card list" id="flist">' + (fl.length ? fl.map(f => `<div class="it"><div class="tx"><b>${esc(f.n)}</b><small>${fmt(f.kcal)} kcal · B ${fmt(f.p)} · T ${fmt(f.f)} · S ${fmt(f.c)}</small></div>${editFoods ? `<button class="x" data-act="delsaved" data-id="${f.id}" aria-label="Odstrániť z mojich jedál">${ICON.x}</button>` : `<button class="add" data-act="addsaved" data-id="${f.id}" aria-label="Pridať">${ICON.plus}</button>`}</div>`).join('') : '<div class="empty">Nič sa nenašlo. Pridaj ho ako nové jedlo nižšie.</div>') + '</div>';
+  const dl = q ? DB.map((d, i) => [d, i]).filter(([d]) => d[0].toLowerCase().includes(q) && !S.foods.some(f => (f.base || f.n).toLowerCase() === d[0].toLowerCase())) : [];
+  h += `<h2>Pridať jedlo</h2><input class="f" style="text-align:left;width:100%;margin-bottom:6px" id="fq" placeholder="Hľadať, napr. banán, ryža, kuracie…" value="${esc(foodQ)}"><div class="muted small" style="margin:0 0 10px">Ťukni na + a zadaj, koľko gramov si zjedol. Živiny sa prepočítajú samé.</div>`;
+  h += '<div class="card list" id="flist">' + (fl.length ? fl.map(f => { const fp = foodPer(f); return `<div class="it"><div class="tx"><b>${esc(fp ? fp.base : f.n)}</b><small>${fp ? `na 100 ${fp.u}: ${fmt(fp.per.kcal)} kcal · B ${fmt(fp.per.p,1)} · T ${fmt(fp.per.f,1)} · S ${fmt(fp.per.c,1)}` : `${fmt(f.kcal)} kcal · B ${fmt(f.p)} · T ${fmt(f.f)} · S ${fmt(f.c)}`}</small></div>${editFoods ? `<button class="x" data-act="delsaved" data-id="${f.id}" aria-label="Odstrániť z mojich jedál">${ICON.x}</button>` : `<button class="add" data-act="addsaved" data-id="${f.id}" aria-label="Pridať">${ICON.plus}</button>`}</div>`; }).join('') : (dl.length ? '' : '<div class="empty">Nič sa nenašlo. Pridaj ho ako nové jedlo nižšie.</div>')) + '</div>';
+  if (dl.length) h += '<h3>Z databázy potravín</h3><div class="card list">' + dl.slice(0, 12).map(([d, i]) => `<div class="it"><div class="tx"><b>${esc(d[0])}</b><small>na 100 ${d[0].startsWith('Mlieko') ? 'ml' : 'g'}: ${fmt(d[1])} kcal · B ${fmt(d[2],1)} · T ${fmt(d[3],1)} · S ${fmt(d[4],1)}</small></div><button class="add" data-act="adddb" data-i="${i}" aria-label="Pridať">${ICON.plus}</button></div>`).join('') + '</div>';
   h += `<button class="btn sec sm" style="margin:0 0 6px auto;display:flex" data-act="editfoods">${editFoods?'Hotovo':'Upraviť zoznam'}</button>`;
-  h += `<h2>Nové jedlo</h2><div class="card"><label class="fld"><span>Názov</span><input id="nn" placeholder="napr. Kuracie s ryžou"></label><div class="g4"><label class="fld"><span>kcal</span><input id="nk" inputmode="decimal"></label><label class="fld"><span>Bielk. g</span><input id="np" inputmode="decimal"></label><label class="fld"><span>Tuky g</span><input id="nf" inputmode="decimal"></label><label class="fld"><span>Sach. g</span><input id="nc" inputmode="decimal"></label><label class="fld"><span>Vlák. g</span><input id="nv" inputmode="decimal"></label></div><label class="chk"><input type="checkbox" id="nsave" checked> Uložiť aj do mojich jedál</label><button class="btn" data-act="addnew">Pridať jedlo</button></div>`;
+  h += `<h2>Nové jedlo</h2><div class="card"><label class="fld"><span>Názov</span><input id="nn" placeholder="napr. Kuracie s ryžou"></label><div class="g4"><label class="fld"><span>kcal</span><input id="nk" inputmode="decimal"></label><label class="fld"><span>Bielk. g</span><input id="np" inputmode="decimal"></label><label class="fld"><span>Tuky g</span><input id="nf" inputmode="decimal"></label><label class="fld"><span>Sach. g</span><input id="nc" inputmode="decimal"></label><label class="fld"><span>Vlák. g</span><input id="nv" inputmode="decimal"></label></div><label class="fld"><span>Hodnoty sú pre koľko gramov? (nepovinné, napr. 100)</span><input id="ng" inputmode="decimal" placeholder="g"></label><label class="chk"><input type="checkbox" id="nsave" checked> Uložiť aj do mojich jedál</label><button class="btn" data-act="addnew">Pridať jedlo</button></div>`;
   h += '<p class="muted small" style="line-height:1.5">Hodnoty v zozname sú približné. Presné čísla nájdeš na obale, prípadne ich prepíš.</p>';
   return h;
 }
@@ -599,6 +606,109 @@ function addScanned(){
     S.foods.unshift({id:'b' + scanItem.code, code:scanItem.code, base:x.n, per:x.per, g:x.g, n:x.n + ' ' + fmt(x.g) + ' g', kcal:x.kcal, p:x.p, f:x.f, c:x.c, v:x.v});
   }
   save(); closeModal(); rerender(); toast('Pridané: ' + x.n);
+}
+
+/* ---------- Jedlo podľa gramov ---------- */
+// databáza potravín: [názov, kcal, bielk., tuky, sach., vlákn.] na 100 g (ml), voliteľne obvyklá porcia v g
+const DB = [
+  ['Banán',89,1.1,0.3,23,2.6,120],['Jablko',52,0.3,0.2,14,2.4,180],['Pomaranč',47,0.9,0.1,12,2.4,150],['Mandarínka',53,0.8,0.3,13,1.8,80],['Hrozno',69,0.7,0.2,18,0.9],['Jahody',32,0.7,0.3,7.7,2],['Čučoriedky',57,0.7,0.3,14,2.4],['Kiwi',61,1.1,0.5,15,3,75],['Hruška',57,0.4,0.1,15,3.1,170],['Ananás',50,0.5,0.1,13,1.4],['Avokádo',160,2,15,9,7,150],
+  ['Mrkva',41,0.9,0.2,10,2.8,80],['Paradajka',18,0.9,0.2,3.9,1.2,120],['Uhorka',15,0.7,0.1,3.6,0.5],['Paprika',31,1,0.3,6,2.1,150],['Brokolica',34,2.8,0.4,7,2.6],['Šalát listový',15,1.4,0.2,2.9,1.3],['Špenát',23,2.9,0.4,3.6,2.2],['Kukurica sterilizovaná',86,3.2,1.2,19,2.4],
+  ['Zemiaky varené',87,1.9,0.1,20,1.8],['Batáty (sladké zemiaky)',86,1.6,0.1,20,3],['Ryža varená',130,2.7,0.3,28,0.4],['Ryža suchá',360,7,0.7,79,1.3],['Cestoviny varené',158,5.8,0.9,31,1.8],['Cestoviny suché',360,12,1.5,73,3],['Ovsené vločky',375,13,7,60,10,80],['Granola',470,10,20,62,7],['Kukuričné lupienky',370,7,1,84,3],
+  ['Chlieb pšenično-ražný',250,8,1.5,48,4,40],['Chlieb celozrnný',247,13,3.4,41,7,40],['Rožok',290,9,3.5,56,2.5,45],['Tortilla pšeničná',310,8,8,50,3,60],
+  ['Kuracie prsia surové',110,23,1.5,0,0],['Kuracie prsia pečené',165,31,3.6,0,0],['Morčacie prsia',105,24,1,0,0],['Hovädzie libové',150,22,7,0,0],['Mleté hovädzie',250,17,20,0,0],['Bravčová panenka',120,22,3,0,0],['Šunka',110,18,3,1.5,0],['Losos',208,20,13,0,0],['Tuniak vo vlastnej šťave',116,26,1,0,0],
+  ['Vajce',143,12.6,9.5,0.7,0,60],['Vaječný bielok',52,11,0.2,0.7,0],['Mlieko polotučné',47,3.3,1.5,4.8,0,250],['Grécky jogurt biely',96,8.8,5.2,3.6,0],['Biely jogurt',60,4.5,3,4.5,0],['Skyr',63,11,0.2,4,0],['Tvaroh polotučný',112,13,4.8,3.6,0],['Cottage',98,11,4.3,3.4,0],['Syr eidam 30 %',265,28,16,0,0],['Mozzarella',250,18,19,1,0],
+  ['Maslo',740,0.7,82,0.7,0],['Olivový olej',884,0,100,0,0],['Arašidové maslo',600,25,50,14,6,15],['Mandle',580,21,50,22,12],['Vlašské orechy',654,15,65,14,7],['Kešu',553,18,44,30,3],['Proteín srvátkový',400,80,6,7,0,30],['Med',304,0.3,0,82,0],['Horká čokoláda 70 %',600,8,43,46,11],
+  ['Fazuľa varená',127,8.7,0.5,23,6],['Šošovica varená',116,9,0.4,20,8],['Cícer varený',164,8.9,2.6,27,7.6],['Hummus',166,8,10,14,6],['Pizza',266,11,10,33,2],['Hranolky',312,3.4,15,41,3.8]
+];
+const DEFG = {'Banán':120, 'Vajce 1 ks':60};
+// z uloženého jedla zistí hodnoty na 100 g a obvyklú hmotnosť (ak sa dá)
+function foodPer(f){
+  if (f.per && f.g) return {base:f.base || f.n, per:f.per, g:f.g, u:f.u || 'g'};
+  const m = f.n.match(/(\d+(?:[.,]\d+)?)\s*(g|ml)\b/), g = m ? num(m[1]) : DEFG[f.n];
+  if (!g) return null;
+  const k = 100 / g, r = x => Math.round((x || 0) * k * 10) / 10;
+  const base = f.n.replace(/\s*\(?\s*\d+(?:[.,]\d+)?\s*(g|ml)\b\s*\)?/, ' ').replace(/\s*\b(1\s+)?(lyžica|odmerka|krajec|ks|hrsť)\b/g, '').replace(/\(\s*\)/g, '').replace(/\s+/g, ' ').trim();
+  const d = DB.find(x => x[0] === base);
+  return {base, per:d ? {kcal:d[1], p:d[2], f:d[3], c:d[4], v:d[5]} : {kcal:r(f.kcal), p:r(f.p), f:r(f.f), c:r(f.c), v:r(f.v)}, g, u:m ? m[2] : 'g'};
+}
+let gramItem = null;
+function openGrams(it){
+  gramItem = it;
+  const f = (id, l, v) => `<label class="fld"><span>${l}</span><input id="r_${id}" inputmode="decimal" value="${esc(v)}"></label>`, u = it.u || 'g';
+  $('#sheet').innerHTML = `<div class="top"><h2>Koľko si zjedol?</h2><button class="x" data-act="close" aria-label="Zavrieť">${ICON.x}</button></div>
+  <label class="fld"><span>Názov</span><input id="r_n" value="${esc(it.base)}"></label>
+  <label class="fld"><span>Množstvo (${u})</span><input id="r_g" inputmode="decimal" value="${esc(it.g || '')}" placeholder="napr. 90" style="font-size:22px;font-weight:700"></label>
+  <div class="gq">${[50,100,150,200,250].map(x => `<button class="chip" data-act="gq" data-g="${x}">${x} ${u}</button>`).join('')}</div>
+  <div id="r_sum" class="gsum"></div>
+  <details class="gper"><summary>Hodnoty na 100 ${u} (môžeš upraviť)</summary><div class="g4" style="margin-top:8px">${f('kcal','kcal',it.per.kcal)}${f('p','Bielk.',it.per.p)}${f('f','Tuky',it.per.f)}${f('c','Sach.',it.per.c)}${f('v','Vlák.',it.per.v)}</div></details>
+  ${it.id ? '' : '<label class="chk"><input type="checkbox" id="r_save"> Uložiť do mojich jedál</label>'}
+  <button class="btn" data-act="addgrams">Pridať jedlo</button>`;
+  openModal(); scanSum();
+  setTimeout(() => { const g = $('#r_g'); if (g && !it.g) g.focus(); }, 250);
+}
+function addGrams(){
+  const x = scanVals(), it = gramItem, u = (it && it.u) || 'g';
+  if (!x.n || !x.g){ toast('Zadaj, koľko si zjedol'); return; }
+  const nm = x.n + ' ' + fmt(x.g) + ' ' + u, tot = {kcal:x.kcal, p:x.p, f:x.f, c:x.c, v:x.v};
+  (S.food[cur] = S.food[cur] || []).push(Object.assign({n:nm}, tot));
+  const saved = it && it.id && S.foods.find(f => f.id === it.id);
+  if (saved) Object.assign(saved, {base:x.n, per:x.per, g:x.g, u, n:nm}, tot);
+  else if ($('#r_save') && $('#r_save').checked && !S.foods.some(f => (f.base || f.n).toLowerCase() === x.n.toLowerCase())) S.foods.unshift(Object.assign({id:'d' + Date.now(), base:x.n, per:x.per, g:x.g, u, n:nm}, tot));
+  save(); closeModal(); rerender(); toast('Pridané: ' + nm);
+}
+
+/* ---------- Ako cvičiť ---------- */
+// m = svaly, s = postup, p = pozor (časté chyby)
+const HOW = {
+  'Bench press (tlak na lavičke)': {m:'hrudník, predné ramená, triceps', s:['Ľahni si na lavičku, oči pod tyčou, chodidlá pevne na zemi.','Uchop tyč o niečo širšie ako ramená, lopatky stiahni k sebe a dole.','Spusti tyč kontrolovane na spodnú časť hrudníka, lakte asi 45° od tela.','Vytlač tyč hore nad ramená, lakte na konci nezamykaj nasilu.'], p:['Zadok drž na lavičke.','Tyč neodrážaj od hrudníka.','Bez dopomoci cvič s bezpečnou váhou alebo so záchytmi.']},
+  'Zhyby nadhmatom': {m:'široký chrbtový sval, biceps, zadné ramená', s:['Chyť hrazdu nadhmatom (dlane od seba), o niečo širšie ako ramená.','Zo zvisu stiahni lopatky dole a začni ťahať lakťami k bokom.','Ťahaj, kým brada nie je nad hrazdou.','Pomaly sa spusti do takmer vystretých rúk.'], p:['Nehoupaj sa a nekopaj nohami.','Nezačínaj trhnutím, ťah ide z chrbta.','Keď ešte nejdú, rob negatívne zhyby (pomalé spúšťanie 4–5 s).']},
+  'Tlak nad hlavu v stoji': {m:'ramená, triceps, stred tela', s:['Tyč zo stojana polož na predné ramená, úchop tesne nad šírkou ramien.','Spevni zadok a brucho, nohy na šírku bokov.','Vytlač tyč rovno hore, hlavu na chvíľu stiahni dozadu, aby tyč prešla.','Hore tyč nad stredom chodidla, pomaly späť na ramená.'], p:['Neprehýbaj sa v krížoch.','Nepomáhaj si nohami.']},
+  'Prítah tyče v predklone': {m:'stred chrbta, široký chrbtový sval, biceps', s:['Postav sa, kolená mierne pokrč, predkloň sa v bokoch asi na 45°.','Chrbát rovný, tyč visí pod ramenami.','Pritiahni tyč k spodnej časti brucha, lakte popri tele.','Hore stlač lopatky k sebe, pomaly spusti.'], p:['Neguľať chrbát.','Nešvihaj trupom, váha musí ísť ťahom rúk a chrbta.']},
+  'Dipy': {m:'triceps, hrudník, predné ramená', s:['Opri sa na bradlá vystretými rukami, ramená dole od uší.','Pomaly sa spúšťaj ohýbaním lakťov, trup mierne vpredu.','Choď dole, kým nie sú ramená asi v úrovni lakťov.','Vytlač sa späť hore.'], p:['Nechoď príliš hlboko, ak ťa bolia ramená.','Neodrážaj sa zo spodnej polohy.']},
+  'Bicepsový zdvih s tyčou': {m:'biceps, predlaktie', s:['Stoj vzpriamene, tyč podhmatom na šírku ramien.','Lakte drž pri tele.','Ohýbaj ruky a zdvíhaj tyč k ramenám.','Pomaly spusti do vystretých rúk.'], p:['Nešvihaj telom.','Lakte nesmú ísť dopredu.']},
+  'Plank': {m:'brucho, stred tela', s:['Opri sa o predlaktia a špičky, lakte pod ramenami.','Telo v jednej rovnej línii od hlavy po päty.','Spevni brucho a zadok a vydrž.'], p:['Zadok neprepadá ani netrčí hore.','Normálne dýchaj.']},
+  'Prítahy kolien vo vise': {m:'spodné brucho, flexory bedier', s:['Zaves sa na hrazdu, ramená aktívne (nie vo voľnom zvise).','Pritiahni kolená k hrudníku a mierne podsuň panvu.','Pomaly spusti nohy dole.'], p:['Nehoupaj sa.','Pohyb ide z brucha, nie švihom.']},
+  'Russian twist s kotúčom 5 kg': {m:'šikmé brušné svaly', s:['Sadni si, kolená pokrčené, trup zakloň asi na 45°.','Kotúč drž pred hrudníkom.','Otáčaj trup do strán a kotúčom sa dotkni zeme vedľa boku.'], p:['Chrbát rovný, neguľatý.','Otáča sa trup, nie len ruky.','Ľahšia verzia: päty na zemi.']},
+  'Drep s tyčou': {m:'stehná, zadok, stred tela', s:['Tyč polož na horné trapézy, odíď zo stojana, nohy na šírku ramien, špičky mierne von.','Nadýchni sa do brucha a spevni ho.','Choď dole do bokov aj kolien naraz, kolená smerujú nad špičky.','Choď aspoň do stehien vodorovne so zemou, potom sa vytlač hore cez celé chodidlo.'], p:['Päty ostávajú na zemi.','Kolená nepadajú dovnútra.','Vždy so záchytnými tyčami v stojane.']},
+  'Výpady vzad s tyčou na chrbte': {m:'stehná, zadok', s:['Tyč na chrbte ako pri drepe, stoj rovno.','Urob krok vzad a spusti zadné koleno takmer k zemi.','Predné koleno nad chodidlom, trup vzpriamený.','Odraz sa prednou nohou späť do stoja a vymeň nohy.'], p:['Krok nie príliš krátky.','Predná päta ostáva na zemi.']},
+  'Bulharský drep (noha na lavičke)': {m:'stehná, zadok', s:['Zadnú nohu polož nártom na lavičku, prednú asi meter pred ňu.','Kotúč drž pri hrudníku.','Spúšťaj sa rovno dole, kým predné stehno nie je takmer vodorovne.','Vytlač sa cez pätu prednej nohy.'], p:['Predné koleno nepadá dovnútra.','Najprv nájdi stabilnú vzdialenosť od lavičky bez záťaže.']},
+  'Výpony na lýtka s tyčou': {m:'lýtka', s:['Tyč na chrbte, špičky na kotúči alebo schode, päty voľne.','Vystúp čo najvyššie na špičky, na chvíľu zastav.','Pomaly spusti päty pod úroveň špičiek.'], p:['Plný rozsah, pomaly.','Kolená mierne pokrčené, ale nepomáhaj si nimi.']},
+  'Predný drep s tyčou': {m:'stehná (predná strana), stred tela', s:['Tyč polož na predné ramená, lakte vysoko dopredu.','Nohy na šírku ramien, nadýchni sa a spevni brucho.','Choď rovno dole, trup čo najvzpriamenejší.','Vytlač sa hore a drž lakte hore.'], p:['Ak úchop nejde, prekríž ruky na tyči.','Lakte nesmú klesnúť, inak tyč spadne dopredu.']},
+  'Rumunský mŕtvy ťah (ľahší)': {m:'zadná strana stehien, zadok, spodný chrbát', s:['Stoj s tyčou pred stehnami, kolená mierne pokrčené.','Tlač boky dozadu a spúšťaj tyč tesne popri nohách.','Choď dole, kým necítiš ťah v zadnej strane stehien (zvyčajne tesne pod kolená).','Vráť sa hore vytlačením bokov dopredu.'], p:['Chrbát celý čas rovný.','Nie je to drep, kolená sa takmer neohýbajú.']},
+  'Zdvihy nôh vo vise': {m:'spodné brucho', s:['Zaves sa na hrazdu, ramená aktívne.','Vystreté nohy zdvihni aspoň do vodorovnej polohy.','Pomaly spusti.'], p:['Nehoupaj sa.','Ľahšia verzia: pokrčené kolená.']},
+  'Bočný plank': {m:'šikmé brušné svaly, boky', s:['Ľahni si na bok, opri sa o predlaktie, lakeť pod ramenom.','Zdvihni boky, telo v rovnej línii.','Vydrž a vymeň stranu.'], p:['Boky neklesajú.','Ľahšia verzia: spodné koleno na zemi.']},
+  'Dead bug': {m:'hlboký stabilizačný systém brucha', s:['Ľahni si na chrbát, ruky hore, kolená nad bokmi pokrčené na 90°.','Pritlač spodný chrbát k zemi.','Pomaly vystri opačnú ruku a nohu nad zem, vráť a vymeň.'], p:['Kríže sa nesmú odlepiť od zeme.','Pomaly, s výdychom.']},
+  'Bench press úzkym úchopom': {m:'triceps, hrudník', s:['Ľahni si ako na bench press, úchop na šírku ramien.','Lakte drž bližšie pri tele.','Spusti tyč na spodnú časť hrudníka.','Vytlač hore.'], p:['Úchop nie príliš úzky, bolia potom zápästia.','Lakte neroztiahnuté do strán.']},
+  'Zhyby podhmatom': {m:'biceps, široký chrbtový sval', s:['Chyť hrazdu podhmatom (dlane k sebe) na šírku ramien.','Stiahni lopatky dole a ťahaj, kým brada nie je nad hrazdou.','Pomaly sa spusti.'], p:['Plný rozsah pohybu.','Bez kopania nohami.']},
+  'Tlak nad hlavu v sede': {m:'ramená, triceps', s:['Sadni si na lavičku s opierkou, tyč na predných ramenách.','Chrbát opretý, brucho spevnené.','Vytlač tyč rovno hore.','Pomaly spusti po bradu.'], p:['Neprehýbaj sa v krížoch.','Tyč nespúšťaj za hlavu.']},
+  'Prítah tyče v predklone podhmatom': {m:'široký chrbtový sval, biceps', s:['Predklon asi 45°, tyč podhmatom na šírku ramien.','Chrbát rovný.','Pritiahni tyč k bruchu, lakte popri tele.','Pomaly spusti.'], p:['Neguľať chrbát.','Nešvihaj trupom.']},
+  'Dipy s predklonom (na hrudník)': {m:'spodná časť hrudníka, triceps', s:['Opri sa na bradlá, trup výraznejšie predkloň.','Lakte mierne do strán.','Spúšťaj sa, kým necítiš ťah v hrudníku.','Vytlač sa hore.'], p:['Nechoď do bolesti v ramenách.','Kontrolovane, bez odrážania.']},
+  'Francúzsky tlak s tyčou v ľahu': {m:'triceps', s:['Ľahni si na lavičku, tyč drž nad hrudníkom, úchop na šírku ramien.','Lakte drž na mieste a ohýbaj ich.','Spusti tyč k čelu alebo tesne za hlavu.','Vystri ruky späť hore.'], p:['Lakte sa neroztvárajú do strán.','Začni s ľahkou váhou, chráň lakte.']},
+  'Upažovanie s kotúčmi 5 kg': {m:'bočné ramená', s:['Stoj s kotúčmi pri bokoch, mierny predklon.','Zdvihni ruky do strán po úroveň ramien, lakte jemne pokrčené.','Pomaly spusti.'], p:['Nešvihaj telom.','Ramená nedvíhaj k ušiam.']},
+  'Ab rollout s tyčou (z kolien)': {m:'brucho, stred tela', s:['Kľakni si, ruky na tyči s kotúčmi pod ramenami.','Spevni brucho a pomaly odroluj tyč dopredu.','Choď len tak ďaleko, ako udržíš rovný chrbát.','Vtiahni sa späť silou brucha.'], p:['Neprehýbaj sa v krížoch.','Začni s krátkym rozsahom.']},
+  'Plank s ťuknutím do ramena': {m:'brucho, stred tela, ramená', s:['Opri sa o vystreté ruky ako na kľuky.','Striedavo sa jednou rukou dotkni opačného ramena.','Boky drž na mieste.'], p:['Nehojdaj bokmi.','Nohy trochu širšie = ľahšie.']},
+  'Superman': {m:'spodný chrbát, zadok', s:['Ľahni si na brucho, ruky vystreté pred sebou.','Naraz zdvihni ruky, hrudník a nohy nad zem.','Krátko vydrž a pomaly spusti.'], p:['Pohľad do zeme, nezakláňaj krk.','Bez trhania.']},
+  'Rumunský mŕtvy ťah': {m:'zadná strana stehien, zadok, spodný chrbát', s:['Stoj s tyčou pred stehnami, úchop na šírku ramien, kolená mierne pokrčené.','Tlač boky dozadu a spúšťaj tyč tesne popri nohách.','Choď dole, kým necítiš silný ťah v zadnej strane stehien.','Vráť sa hore vytlačením bokov dopredu a stiahnutím zadku.'], p:['Chrbát celý čas rovný, hrudník hore.','Tyč sa drží blízko tela.','Hore sa nezakláňaj.']},
+  'Drep s pauzou dole (2 s)': {m:'stehná, zadok, stred tela', s:['Rovnaký drep ako pri drepe s tyčou.','V spodnej polohe zastav a vydrž 2 sekundy so spevneným telom.','Vytlač sa hore bez odrazu.'], p:['V pauze neuvoľňuj brucho.','Váha o niečo nižšia ako pri bežnom drepe.']},
+  'Hip thrust (chrbát o lavičku)': {m:'zadok, zadná strana stehien', s:['Sadni si na zem, lopatky opri o lavičku, tyč s penou na boky.','Chodidlá na zemi, kolená pokrčené.','Vytlač boky hore, kým telo nie je rovné od ramien po kolená.','Hore stiahni zadok, pomaly spusti.'], p:['Neprehýbaj sa v krížoch, brada mierne k hrudníku.','Pod tyč daj uterák alebo penu.']},
+  'Step-up na lavičku': {m:'stehná, zadok', s:['Kotúč drž pri hrudníku, celé chodidlo polož na lavičku.','Vystúp hore silou nohy na lavičke.','Pomaly zostúp tou istou nohou dole.'], p:['Neodrážaj sa spodnou nohou.','Koleno nepadá dovnútra.']},
+  'Výpony na lýtka na jednej nohe': {m:'lýtka', s:['Postav sa špičkou jednej nohy na schod, druhú nohu pokrč.','Pridržiavaj sa kvôli rovnováhe.','Vystúp čo najvyššie na špičku a pomaly spusti pätu pod schod.'], p:['Plný rozsah, pomaly.','Bez poskakovania.']},
+  'Good morning s tyčou': {m:'zadná strana stehien, spodný chrbát', s:['Tyč na chrbte ako pri drepe, kolená mierne pokrčené.','Tlač boky dozadu a predkláňaj trup s rovným chrbtom.','Choď, kým necítiš ťah v zadnej strane stehien.','Vráť sa hore vytlačením bokov.'], p:['Ľahká váha, ide o techniku.','Chrbát sa nesmie guľatiť.']},
+  'Hollow hold': {m:'brucho', s:['Ľahni si na chrbát, spodný chrbát pritlač k zemi.','Zdvihni ruky, ramená a vystreté nohy nad zem.','Vydrž v tvare „banánu“.'], p:['Kríže sa nesmú odlepiť od zeme.','Ľahšia verzia: pokrčené kolená.']},
+  'Bočný plank s dvíhaním boku': {m:'šikmé brušné svaly, boky', s:['Bočný plank na predlaktí.','Pomaly spusti bok k zemi a zdvihni ho späť hore.','Opakuj a vymeň stranu.'], p:['Telo ostáva v jednej rovine.','Pomaly, bez trhania.']},
+  'Horolezec': {m:'brucho, ramená, kondícia', s:['Opri sa o vystreté ruky ako na kľuky.','Striedavo prisúvaj kolená k hrudníku v rýchlom tempe.','Boky drž nízko.'], p:['Ruky pod ramenami.','Zadok netrčí hore.']},
+  'Beh s chôdzou': {m:'kondícia, srdce, nohy', s:['5 min svižná chôdza na zahriatie.','Striedaj beh a chôdzu podľa plánu (napr. 1 min beh + 2 min chôdza).','Na konci 5 min pomalá chôdza.'], p:['Tempo, pri ktorom sa dá rozprávať.','Krátke kroky, dopad pod telo.']}
+};
+function exName(w, id){ const P = PLAN[w]; if (!P) return ''; if (id === 'run') return 'Beh s chôdzou'; const i = +id.slice(1); return id[0] === 'c' ? (P.core[i] || [])[0] : (P.ex[i] || [])[0]; }
+function openHow(name){
+  const H = HOW[name]; if (!H) return;
+  const yt = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(name + ' technika');
+  $('#sheet').innerHTML = `<div class="top"><h2 style="font-size:20px">${esc(name)}</h2><button class="x" data-act="close" aria-label="Zavrieť">${ICON.x}</button></div>
+  <div class="muted small" style="margin:-4px 0 14px">Zapojené svaly: <b style="color:var(--t)">${esc(H.m)}</b></div>
+  <h3 style="margin-top:0">Ako na to</h3><ol class="howl">${H.s.map(x => `<li>${esc(x)}</li>`).join('')}</ol>
+  <h3>Na čo si dať pozor</h3><ul class="howp">${H.p.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+  <a class="btn" href="${yt}" target="_blank" rel="noopener" style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Pozrieť video, ako sa cvik robí</a>`;
+  openModal();
 }
 
 /* ---------- Doplnky ---------- */
@@ -829,7 +939,8 @@ document.addEventListener('click', e => {
   else if (a === 'delfood'){ (S.food[cur] || []).splice(+b.dataset.i, 1); save(); rerender(); }
   else if (a === 'addsaved'){
     const f = S.foods.find(x => x.id === b.dataset.id); if (!f) return;
-    const p = portion;
+    const fp = foodPer(f); if (fp){ openGrams(Object.assign({id:f.id}, fp)); return; }
+    const p = 1;
     (S.food[cur] = S.food[cur] || []).push({n: (p !== 1 ? fmt(p,1) + '× ' : '') + f.n, kcal:Math.round(f.kcal*p), p:Math.round(f.p*p), f:Math.round(f.f*p), c:Math.round(f.c*p), v:Math.round((f.v||0)*p)});
     save(); rerender(); toast('Pridané: ' + f.n);
   }
@@ -839,10 +950,16 @@ document.addEventListener('click', e => {
     const n = $('#nn').value.trim(); const k = num($('#nk').value);
     if (!n || !k){ toast('Zadaj aspoň názov a kcal'); return; }
     const item = {n, kcal:Math.round(k), p:Math.round(num($('#np').value)), f:Math.round(num($('#nf').value)), c:Math.round(num($('#nc').value)), v:Math.round(num($('#nv').value))};
-    (S.food[cur] = S.food[cur] || []).push(item);
+    const ng = num($('#ng').value), k1 = ng ? 100 / ng : 0, r1 = x => Math.round(x * k1 * 10) / 10;
+    (S.food[cur] = S.food[cur] || []).push(ng ? Object.assign({}, item, {n:n + ' ' + fmt(ng) + ' g'}) : item);
+    if (ng) Object.assign(item, {base:n, g:ng, u:'g', n:n + ' ' + fmt(ng) + ' g', per:{kcal:r1(item.kcal), p:r1(num($('#np').value)), f:r1(num($('#nf').value)), c:r1(num($('#nc').value)), v:r1(num($('#nv').value))}});
     if ($('#nsave').checked && !S.foods.some(x => x.n.toLowerCase() === n.toLowerCase())) S.foods.unshift(Object.assign({id:'u' + Date.now()}, item));
     save(); rerender(); toast('Jedlo pridané');
   }
+  else if (a === 'adddb'){ const d = DB[+b.dataset.i]; if (d) openGrams({base:d[0], per:{kcal:d[1], p:d[2], f:d[3], c:d[4], v:d[5]}, g:d[6] || '', u:d[0].startsWith('Mlieko') ? 'ml' : 'g'}); }
+  else if (a === 'gq'){ $('#r_g').value = b.dataset.g; scanSum(); }
+  else if (a === 'addgrams') addGrams();
+  else if (a === 'howto') openHow(exName(b.dataset.w, b.dataset.id));
   else if (a === 'col'){ S.col = S.col || {}; const k = b.dataset.k; if (S.col[k]) delete S.col[k]; else S.col[k] = 1; save(); rerender(); }
   else if (a === 'supp'){ const t = S.suppLog[cur] = S.suppLog[cur] || []; const i = t.indexOf(b.dataset.id); if (i < 0){ t.push(b.dataset.id); try { navigator.vibrate && navigator.vibrate(30); } catch(e){} } else t.splice(i, 1); save(); rerender(); }
   else if (a === 'daytype'){ S.dayType = S.dayType || {}; const auto = workoutFor(cur) ? 't' : 'r'; if (b.dataset.t === auto) delete S.dayType[cur]; else S.dayType[cur] = b.dataset.t; save(); rerender(); }
