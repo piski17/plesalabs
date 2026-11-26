@@ -61,6 +61,7 @@ h3{font-size:15px;margin:18px 0 8px;color:var(--m);font-weight:600;text-transfor
 .exh b{font-size:16px;line-height:1.3}
 .exh small{display:block;color:var(--m);font-size:12.5px;margin-top:2px}
 .exr{display:flex;gap:6px;align-items:flex-start;flex:none}.exr .tgi{flex:none;max-width:none}.exh>div:first-child{flex:1}
+.vidf{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000}.vidf iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .animbox{background:#f4f5f7;border:1px solid var(--line);border-radius:16px;margin:0 auto 12px;aspect-ratio:240/230;max-height:230px;display:flex;justify-content:center}.animbox svg{height:100%;width:auto;max-width:100%}
 .infob{font-size:15px;color:var(--m)}
 .gq{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 12px}.gq .chip{cursor:pointer}
@@ -483,7 +484,7 @@ function renderStrava(){
 let camStream = null, zx = null, detLoop = 0, scanning = false;
 let lockY = 0;
 function openModal(){ if (!$('#modal').classList.contains('show')){ lockY = window.scrollY; document.body.style.top = -lockY + 'px'; document.body.classList.add('lock'); } $('#modal').classList.add('show'); $('#sheet').scrollTop = 0; }
-function closeModal(){ stopCam(); if ($('#modal').classList.contains('show')){ $('#modal').classList.remove('show'); document.body.classList.remove('lock'); document.body.style.top = ''; window.scrollTo(0, lockY); } }
+function closeModal(){ stopCam(); const vf = document.querySelector('.vidf'); if (vf) vf.remove(); if ($('#modal').classList.contains('show')){ $('#modal').classList.remove('show'); document.body.classList.remove('lock'); document.body.style.top = ''; window.scrollTo(0, lockY); } }
 function loadScript(src){ return new Promise((ok, bad) => { if (document.querySelector('script[src="' + src + '"]')) return ok(); const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = bad; document.head.appendChild(el); }); }
 function openScan(){
   $('#sheet').innerHTML = `<div class="top"><h2>Čiarový kód</h2><button class="x" data-act="close" aria-label="Zavrieť">${ICON.x}</button></div>
@@ -799,6 +800,9 @@ function startAnim(key){
 }
 
 /* ---------- Ako cvičiť ---------- */
+// jedno konkrétne video (YouTube) ku každému cviku
+const VID = {"Bench press (tlak na lavičke)": "Ch456viTiZQ", "Zhyby nadhmatom": "yl_owH54iH0", "Tlak nad hlavu v stoji": "3VpI0V_9D0Y", "Prítah tyče v predklone": "vT2GjY_Umpw", "Dipy": "07-CGKrJy38", "Bicepsový zdvih s tyčou": "dDI8ClxRS04", "Plank": "HaH4JvdBCfE", "Prítahy kolien vo vise": "p9hhX_Sx5v0", "Russian twist s kotúčom 5 kg": "WRQsYOvslrU", "Drep s tyčou": "-bJIpOq-LWk", "Výpady vzad s tyčou na chrbte": "oD0FzpYbIoU", "Bulharský drep (noha na lavičke)": "VPhhE6bBzZE", "Výpony na lýtka s tyčou": "_ZXeEvfrZtQ", "Predný drep s tyčou": "6PLvU0rjw18", "Rumunský mŕtvy ťah (ľahší)": "2bmuYtv4HbQ", "Zdvihy nôh vo vise": "JXztA3fLp50", "Bočný plank": "Ujf5ELfqI7o", "Dead bug": "bxn9FBrt4-A", "Bench press úzkym úchopom": "nEF0bv2FW94", "Zhyby podhmatom": "53kV7Ou7oZo", "Tlak nad hlavu v sede": "U-LRZmC_oD8", "Prítah tyče v predklone podhmatom": "tyHegMDIEbQ", "Dipy s predklonom (na hrudník)": "RxdcPqFWqpA", "Francúzsky tlak s tyčou v ľahu": "4re6CJ0XNF8", "Upažovanie s kotúčmi 5 kg": "Y29xKcze8Ik", "Ab rollout s tyčou (z kolien)": "3FuTQxsRAGY", "Plank s ťuknutím do ramena": "mPIym8BigIc", "Superman": "HPFQf4cubhE", "Rumunský mŕtvy ťah": "2bmuYtv4HbQ", "Drep s pauzou dole (2 s)": "9Zzpom4FsD0", "Hip thrust (chrbát o lavičku)": "Zp26q4BY5HE", "Step-up na lavičku": "05B9W7Uxn-o", "Výpony na lýtka na jednej nohe": "Ux47hU-ePXs", "Good morning s tyčou": "0LLam_wkt3A", "Hollow hold": "hK7QTWGRBu0", "Bočný plank s dvíhaním boku": "vSM0R4u6yyY", "Horolezec": "re3dtmzGCOc", "Beh s chôdzou": "B0rb_Ln64qU"};
+
 
 // m = svaly, s = postup, p = pozor (časté chyby)
 const HOW = {
@@ -850,7 +854,7 @@ function openHow(name){
   <div class="muted small" style="margin:-4px 0 14px">Zapojené svaly: <b style="color:var(--t)">${esc(H.m)}</b></div>
   <h3 style="margin-top:0">Ako na to</h3><ol class="howl">${H.s.map(x => `<li>${esc(x)}</li>`).join('')}</ol>
   <h3>Na čo si dať pozor</h3><ul class="howp">${H.p.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-  <a class="btn" href="${yt}" target="_blank" rel="noopener" style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Pozrieť video, ako sa cvik robí</a>`;
+  ${VID[name] ? `<div id="vidbox" style="margin-top:16px"><button class="btn" data-act="playvid" data-v="${VID[name]}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Prehrať video</button></div>` : `<a class="btn" href="${yt}" target="_blank" rel="noopener" style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none">Pozrieť video, ako sa cvik robí</a>`}`;
   openModal(); startAnim(ANX[name]);
 }
 
@@ -1104,6 +1108,7 @@ document.addEventListener('click', e => {
   else if (a === 'gq'){ $('#r_g').value = b.dataset.g; scanSum(); }
   else if (a === 'addgrams') addGrams();
   else if (a === 'howto') openHow(exName(b.dataset.w, b.dataset.id));
+  else if (a === 'playvid'){ const v = b.dataset.v; $('#vidbox').innerHTML = `<div class="vidf"><iframe src="https://www.youtube-nocookie.com/embed/${v}?autoplay=1&playsinline=1&rel=0" title="Video cviku" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div><a class="muted small" href="https://www.youtube.com/watch?v=${v}" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px">Video sa neprehrá? Otvoriť v YouTube</a>`; }
   else if (a === 'col'){ S.col = S.col || {}; const k = b.dataset.k; if (S.col[k]) delete S.col[k]; else S.col[k] = 1; save(); rerender(); }
   else if (a === 'supp'){ const t = S.suppLog[cur] = S.suppLog[cur] || []; const i = t.indexOf(b.dataset.id); if (i < 0){ t.push(b.dataset.id); try { navigator.vibrate && navigator.vibrate(30); } catch(e){} } else t.splice(i, 1); save(); rerender(); }
   else if (a === 'daytype'){ S.dayType = S.dayType || {}; const auto = workoutFor(cur) ? 't' : 'r'; if (b.dataset.t === auto) delete S.dayType[cur]; else S.dayType[cur] = b.dataset.t; save(); rerender(); }
